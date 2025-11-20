@@ -731,6 +731,8 @@
 
     const GANTT_WINDOW_DAYS = 21;
     const GANTT_DAY_WIDTH = 70;
+    const GANTT_BAR_HEIGHT = 72;
+    const GANTT_BAR_GAP = 16;
 
     function loadTasksFromStorage() {
       try {
@@ -955,7 +957,8 @@
         bar.className =
           "gantt-bar priority-" + (task.priority || "normal");
         bar.style.left = leftPx + "px";
-        bar.style.top = index * 38 + "px";
+        const barTop = index * (GANTT_BAR_HEIGHT + GANTT_BAR_GAP);
+        bar.style.top = barTop + "px";
         bar.style.width = widthPx + "px";
         bar.title =
           task.title +
@@ -974,7 +977,10 @@
         ganttBars.appendChild(bar);
       });
 
-      const height = sortedTasks.length * 38 + 20;
+      const height =
+        sortedTasks.length * (GANTT_BAR_HEIGHT + GANTT_BAR_GAP) -
+        GANTT_BAR_GAP +
+        20;
       ganttBars.style.height = height + "px";
       const inner = ganttTrack.querySelector(".gantt-track-inner");
       if (inner) {
