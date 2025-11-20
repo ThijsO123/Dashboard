@@ -61,6 +61,7 @@
         <label for="projectFilterSelect" class="project-filter-label">
           Projectfilter
         </label>
+        <p class="project-filter-sub">Filtert links, taken en planning.</p>
         <select id="projectFilterSelect" class="project-filter-select">
           <option value="">Alle projecten</option>
         </select>
@@ -111,7 +112,7 @@
       </section>
 
       <!-- WORKSPACE: links + tasklist -->
-      <div class="workspace">
+      <div class="workspace-top">
         <!-- Links per categorie -->
         <section class="links-panel">
           <div id="emptyState" class="empty-state">
@@ -122,10 +123,15 @@
           <div id="categoriesRoot" style="display:none;"></div>
         </section>
 
+        <div class="workspace-divider" aria-hidden="true"></div>
+
         <!-- TASKLIST.APP -->
         <section class="tasklist" id="tasklistSection">
           <div class="tasklist-header">
-            <div class="tasklist-label">TASKLIST.APP</div>
+            <div class="tasklist-label">
+              <span class="tasklist-icon" aria-hidden="true">☰</span>
+              TASKLIST.APP
+            </div>
             <div class="tasklist-meta">
               <span id="taskCountOpen">0 open</span>
               <span>•</span>
@@ -188,52 +194,59 @@
             </div>
           </div>
         </section>
-
-        <!-- GANTT planning gekoppeld aan taken -->
-        <section class="gantt-panel" id="ganttPanel">
-          <div class="gantt-header">
-            <div>
-              <div class="gantt-label">GANTT.PLANNING</div>
-              <div class="gantt-sub" id="ganttRangeLabel">Berekening bezig…</div>
-            </div>
-            <div class="gantt-legend">
-              <span class="legend-bullet priority-high"></span> Hoog
-              <span class="legend-bullet priority-normal"></span> Normaal
-              <span class="legend-bullet priority-low"></span> Laag
-            </div>
-          </div>
-          <div class="gantt-body">
-            <div class="gantt-track" id="ganttTrack">
-              <div class="gantt-track-inner">
-                <div class="gantt-grid" id="ganttGrid"></div>
-                <div class="gantt-bars" id="ganttBars"></div>
-              </div>
-            </div>
-            <div class="gantt-empty" id="ganttEmpty">
-              Voeg vervaldatums toe aan open taken om een planning te zien.
-            </div>
-          </div>
-        </section>
       </div>
 
-      <!-- Terminal -->
-      <section class="terminal" id="terminalSection">
-        <div class="terminal-header">WORK.TERMINAL</div>
-        <div class="terminal-output" id="terminalOutput">
-          <div class="terminal-line">
-            type <span class="cmd">help</span> voor link-commando's,
-            <span class="cmd">t-help</span> voor taken.
+      <!-- GANTT planning gekoppeld aan taken -->
+      <section class="gantt-panel" id="ganttPanel">
+        <div class="gantt-header">
+          <div>
+            <div class="gantt-label" id="ganttLabel">GANTT.PLANNING</div>
+            <div class="gantt-sub" id="ganttRangeLabel">Berekening bezig…</div>
+          </div>
+          <div class="gantt-legend">
+            <span class="legend-bullet priority-high"></span> Hoog
+            <span class="legend-bullet priority-normal"></span> Normaal
+            <span class="legend-bullet priority-low"></span> Laag
           </div>
         </div>
-        <div class="terminal-input-line">
-          <span class="prompt-label">&gt;</span>
-          <input
-            id="terminalInput"
-            class="terminal-input"
-            type="text"
-            autocomplete="off"
-            placeholder="command..."
-          />
+        <div class="gantt-body">
+          <div class="gantt-track" id="ganttTrack">
+            <div class="gantt-track-inner">
+              <div class="gantt-grid" id="ganttGrid"></div>
+              <div class="gantt-bars" id="ganttBars"></div>
+            </div>
+          </div>
+          <div class="gantt-empty" id="ganttEmpty">
+            Voeg vervaldatums toe aan open taken om een planning te zien.
+          </div>
+        </div>
+      </section>
+
+      <!-- Terminal -->
+      <section class="terminal is-collapsed" id="terminalSection">
+        <div class="terminal-header">
+          <button type="button" class="terminal-toggle" id="terminalToggle" aria-expanded="false" aria-controls="terminalContent">
+            ▸
+          </button>
+          <div class="terminal-title">WORK.TERMINAL</div>
+        </div>
+        <div class="terminal-content" id="terminalContent">
+          <div class="terminal-output" id="terminalOutput">
+            <div class="terminal-line">
+              type <span class="cmd">help</span> voor link-commando's,
+              <span class="cmd">t-help</span> voor taken.
+            </div>
+          </div>
+          <div class="terminal-input-line">
+            <span class="prompt-label">&gt;</span>
+            <input
+              id="terminalInput"
+              class="terminal-input"
+              type="text"
+              autocomplete="off"
+              placeholder="command..."
+            />
+          </div>
         </div>
       </section>
     </main>

@@ -728,6 +728,7 @@
     const ganttTrack = document.getElementById("ganttTrack");
     const ganttEmpty = document.getElementById("ganttEmpty");
     const ganttRangeLabel = document.getElementById("ganttRangeLabel");
+    const ganttLabel = document.getElementById("ganttLabel");
 
     const GANTT_WINDOW_DAYS = 21;
     const GANTT_DAY_WIDTH = 70;
@@ -826,6 +827,12 @@
         !ganttRangeLabel
       ) {
         return;
+      }
+
+      if (ganttLabel) {
+        ganttLabel.textContent = currentProjectFilter
+          ? "GANTT.PLANNING — Project: " + currentProjectFilter
+          : "GANTT.PLANNING";
       }
 
       const ganttTasks = tasks.filter(
@@ -1189,6 +1196,8 @@
     }
 
     // --- TERMINAL ---------------------------------------------------------
+    const terminalSection = document.getElementById("terminalSection");
+    const terminalToggle = document.getElementById("terminalToggle");
     const terminalInput = document.getElementById("terminalInput");
     const terminalOutput = document.getElementById("terminalOutput");
 
@@ -1202,6 +1211,26 @@
 
     const terminalHistory = [];
     let terminalHistoryIndex = -1;
+
+    if (terminalToggle && terminalSection) {
+      setTerminalCollapsed(true);
+      terminalToggle.addEventListener("click", () => {
+        const collapsed = terminalSection.classList.contains("is-collapsed");
+        setTerminalCollapsed(!collapsed);
+      });
+    }
+
+    // Collapse/expand terminal without touching command handling
+    function setTerminalCollapsed(collapsed) {
+      if (!terminalSection || !terminalToggle) return;
+      terminalSection.classList.toggle("is-collapsed", collapsed);
+      terminalToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      terminalToggle.textContent = collapsed ? "▸" : "▾";
+
+      if (!collapsed && terminalInput) {
+        setTimeout(() => terminalInput.focus(), 120);
+      }
+    }
 
     function termPrint(lineHtml) {
       const div = document.createElement("div");
@@ -1767,11 +1796,12 @@
         e.preventDefault();
         titleInput.focus();
         titleInput.select();
-      } else if (e.key === "t" || e.key === "T") {
-        e.preventDefault();
-        terminalInput.focus();
-      }
-    });
+        } else if (e.key === "t" || e.key === "T") {
+          e.preventDefault();
+          if (terminalSection) setTerminalCollapsed(false);
+          if (terminalInput) terminalInput.focus();
+        }
+      });
 
     // --- Export / import (links) -----------------------------------------
     const exportBtn = document.getElementById("exportBtn");
