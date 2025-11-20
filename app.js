@@ -86,7 +86,10 @@
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          links = parsed;
+          links = parsed.map((item) => ({
+            ...item,
+            project: normalizeProject(item.project),
+          }));
         }
       } catch (err) {
         console.error("Kon links niet laden:", err);
@@ -134,6 +137,65 @@
       );
     }
 
+    function normalizeProject(value) {
+      return String(value || "").trim();
+    }
+
+    function getAllProjects() {
+      const set = new Set();
+      links.forEach((l) => {
+        const p = normalizeProject(l.project);
+        if (p) set.add(p);
+      });
+      tasks.forEach((t) => {
+        const p = normalizeProject(t.project);
+        if (p) set.add(p);
+      });
+      return Array.from(set).sort((a, b) =>
+        a.localeCompare(b, "nl", { sensitivity: "base" })
+      );
+    }
+
+    function matchesProject(item) {
+      if (!currentProjectFilter) return true;
+      const p = normalizeProject(item && item.project);
+      if (!p) return false;
+      return p.toLowerCase() === currentProjectFilter.toLowerCase();
+    }
+
+    function updateProjectSuggestions() {
+      if (!projectSuggestions) return;
+      projectSuggestions.innerHTML = "";
+      getAllProjects().forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        projectSuggestions.appendChild(opt);
+      });
+    }
+
+    function updateProjectFilterOptions() {
+      if (!projectFilterSelect) return;
+      const prev = currentProjectFilter;
+      projectFilterSelect.innerHTML = "";
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Alle projecten";
+      projectFilterSelect.appendChild(defaultOpt);
+
+      getAllProjects().forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        projectFilterSelect.appendChild(opt);
+      });
+
+      projectFilterSelect.value = prev;
+      if (projectFilterSelect.value !== prev) {
+        currentProjectFilter = "";
+        projectFilterSelect.value = "";
+      }
+    }
+
     function updateCategorySuggestions() {
       const datalist = document.getElementById("categorySuggestions");
       if (!datalist) return;
@@ -172,9 +234,12 @@
     const categoriesRoot = document.getElementById("categoriesRoot");
     const linksCount = document.getElementById("linksCount");
     const searchInput = document.getElementById("searchInput");
+    const projectFilterSelect = document.getElementById("projectFilterSelect");
+    const projectSuggestions = document.getElementById("projectSuggestions");
 
     let currentQuickFilter = "all"; // all | inbox | today | week | category
     let currentCategoryFilterName = "";
+    let currentProjectFilter = "";
 
     function renderLinks() {
       const query = searchInput.value.trim().toLowerCase();
@@ -189,12 +254,14 @@
       const filtered = links.filter((link) => {
         const catRaw = (link.category || "").trim();
         const cat = catRaw || "Algemeen";
+        const projectName = normalizeProject(link.project);
 
         let matchesSearch =
           !query ||
           (link.title || "").toLowerCase().includes(query) ||
           (link.url || "").toLowerCase().includes(query) ||
-          (link.category || "").toLowerCase().includes(query);
+          (link.category || "").toLowerCase().includes(query) ||
+          projectName.toLowerCase().includes(query);
 
         let matchesQuick = true;
         const created = link.createdAt ? new Date(link.createdAt) : null;
@@ -217,7 +284,9 @@
             matchesQuick = true;
         }
 
-        return matchesSearch && matchesQuick;
+        const matchesProjectFilter = matchesProject(link);
+
+        return matchesSearch && matchesQuick && matchesProjectFilter;
       });
 
       categoriesRoot.innerHTML = "";
@@ -273,6 +342,8 @@
 
       linksCount.textContent = String(links.length);
       updateCategorySuggestions();
+      updateProjectFilterOptions();
+      updateProjectSuggestions();
       updateFooterMeta();
     }
 
@@ -327,6 +398,26 @@
 
       main.appendChild(titleEl);
       main.appendChild(urlRow);
+
+      const metaRow = document.createElement("div");
+      metaRow.className = "link-meta";
+
+      const catPill = document.createElement("span");
+      catPill.className = "link-pill category";
+      catPill.textContent = (link.category || "Algemeen").trim() || "Algemeen";
+      metaRow.appendChild(catPill);
+
+      const projectName = normalizeProject(link.project);
+      if (projectName) {
+        const projectPill = document.createElement("span");
+        projectPill.className = "link-pill project";
+        projectPill.textContent = projectName;
+        metaRow.appendChild(projectPill);
+      }
+
+      if (metaRow.childNodes.length) {
+        main.appendChild(metaRow);
+      }
 
       left.appendChild(dragBtn);
       left.appendChild(main);
@@ -492,13 +583,21 @@
       );
       if (newCategory === null) return;
 
+      const newProject = prompt(
+        "Project aanpassen (optioneel):",
+        link.project || ""
+      );
+      if (newProject === null) return;
+
       const t = newTitle.trim();
       const u = newUrl.trim();
       const c = newCategory.trim();
+      const p = normalizeProject(newProject);
 
       if (t) link.title = t;
       if (u) link.url = normalizeUrl(u);
       link.category = c;
+      link.project = p;
 
       saveLinksToStorage();
       touchLastModified();
@@ -510,6 +609,7 @@
     const titleInput = document.getElementById("titleInput");
     const urlInput = document.getElementById("urlInput");
     const categoryInput = document.getElementById("categoryInput");
+    const projectInput = document.getElementById("projectInput");
     const fabAdd = document.getElementById("fabAdd");
 
     linkForm.addEventListener("submit", (ev) => {
@@ -518,6 +618,7 @@
       const title = titleInput.value.trim();
       const url = urlInput.value.trim();
       let category = categoryInput.value.trim();
+      const projectName = normalizeProject(projectInput.value);
 
       if (!title || !url) return;
 
@@ -531,6 +632,7 @@
         url: normalizedUrl,
         category,
         createdAt: new Date().toISOString(),
+        project: projectName,
       };
 
       links.push(newLink);
@@ -581,6 +683,14 @@
       });
     });
 
+    if (projectFilterSelect) {
+      projectFilterSelect.addEventListener("change", () => {
+        currentProjectFilter = projectFilterSelect.value.trim();
+        renderLinks();
+        renderTasks();
+      });
+    }
+
     // --- TASKLIST DATA ----------------------------------------------------
     const TASKS_STORAGE_KEY = "workTasksDataV1";
 
@@ -590,9 +700,12 @@
      *  title: string,
      *  done: boolean,
      *  createdAt: string,
+     *  startDate: string | null,
+     *  endDate: string | null,
      *  dueDate: string | null,
      *  priority: "high"|"normal"|"low"|null,
-     *  linkUrl: string | null
+     *  linkUrl: string | null,
+     *  project: string | null
      * }} TaskItem
      */
 
@@ -601,8 +714,10 @@
 
     const taskForm = document.getElementById("taskForm");
     const taskTitleInput = document.getElementById("taskTitleInput");
-    const taskDueInput = document.getElementById("taskDueInput");
+    const taskStartInput = document.getElementById("taskStartInput");
+    const taskEndInput = document.getElementById("taskEndInput");
     const taskPriorityInput = document.getElementById("taskPriorityInput");
+    const taskProjectInput = document.getElementById("taskProjectInput");
     const taskLinkInput = document.getElementById("taskLinkInput");
     const taskListOpen = document.getElementById("taskListOpen");
     const taskListDone = document.getElementById("taskListDone");
@@ -628,9 +743,12 @@
             title: String(t.title || "").trim() || "Zonder titel",
             done: !!t.done,
             createdAt: t.createdAt || new Date().toISOString(),
-            dueDate: t.dueDate || null,
+            startDate: t.startDate || null,
+            endDate: t.endDate || t.dueDate || null,
+            dueDate: t.dueDate || t.endDate || null,
             priority: t.priority || null,
             linkUrl: t.linkUrl || null,
+            project: normalizeProject(t.project) || null,
           }));
         }
       } catch (e) {
@@ -650,8 +768,14 @@
       taskListOpen.innerHTML = "";
       taskListDone.innerHTML = "";
 
-      const openTasks = tasks.filter((t) => !t.done);
-      const doneTasks = tasks.filter((t) => t.done);
+      const toDate = (value) => {
+        if (!value) return null;
+        const d = new Date(value + "T00:00:00");
+        return isNaN(d) ? null : d;
+      };
+
+      const openTasks = tasks.filter((t) => !t.done && matchesProject(t));
+      const doneTasks = tasks.filter((t) => t.done && matchesProject(t));
 
       if (!openTasks.length) {
         const span = document.createElement("div");
@@ -661,8 +785,8 @@
       } else {
         openTasks
           .sort((a, b) => {
-            const da = a.dueDate ? new Date(a.dueDate) : null;
-            const db = b.dueDate ? new Date(b.dueDate) : null;
+            const da = toDate(a.endDate || a.dueDate);
+            const db = toDate(b.endDate || b.dueDate);
             if (da && db) return da - db;
             if (da) return -1;
             if (db) return 1;
@@ -685,6 +809,9 @@
       taskCountOpen.textContent = openTasks.length + " open";
       taskCountDone.textContent = doneTasks.length + " gedaan";
 
+      updateProjectFilterOptions();
+      updateProjectSuggestions();
+
       renderGantt();
     }
 
@@ -699,12 +826,16 @@
         return;
       }
 
-      const ganttTasks = tasks.filter((t) => !t.done && t.dueDate);
+      const ganttTasks = tasks.filter(
+        (t) => !t.done && matchesProject(t) && (t.endDate || t.dueDate)
+      );
 
       if (!ganttTasks.length) {
         ganttTrack.style.display = "none";
         ganttEmpty.style.display = "block";
-        ganttRangeLabel.textContent = "Geen planning beschikbaar";
+        ganttRangeLabel.textContent = currentProjectFilter
+          ? "Geen planning voor project '" + currentProjectFilter + "'"
+          : "Geen planning beschikbaar";
         return;
       }
 
@@ -717,22 +848,31 @@
       let startDate = new Date(todayStart);
       startDate.setDate(startDate.getDate() - 1);
 
-      let earliestDue = null;
+      let earliestStart = null;
+      let earliestEnd = null;
       ganttTasks.forEach((task) => {
-        const due = startOfDay(new Date(task.dueDate));
-        if (!isNaN(due)) {
-          if (!earliestDue || due < earliestDue) {
-            earliestDue = due;
-          }
+        const end = startOfDay(new Date(task.endDate || task.dueDate));
+        const start = startOfDay(
+          new Date(task.startDate || task.createdAt || task.endDate || task.dueDate)
+        );
+        if (!isNaN(start) && (!earliestStart || start < earliestStart)) {
+          earliestStart = start;
+        }
+        if (!isNaN(end) && (!earliestEnd || end < earliestEnd)) {
+          earliestEnd = end;
         }
       });
 
-      if (earliestDue) {
-        const candidate = new Date(earliestDue);
-        candidate.setDate(candidate.getDate() - 3);
+      if (earliestStart) {
+        const candidate = new Date(earliestStart);
+        candidate.setDate(candidate.getDate() - 1);
         if (candidate < startDate) {
           startDate = candidate;
         }
+      } else if (earliestEnd) {
+        const candidate = new Date(earliestEnd);
+        candidate.setDate(candidate.getDate() - 3);
+        if (candidate < startDate) startDate = candidate;
       }
 
       if (startDate < minStart) {
@@ -747,7 +887,8 @@
         "Planning " +
         startDate.toLocaleDateString("nl-NL", labelOpts) +
         " → " +
-        endDate.toLocaleDateString("nl-NL", labelOpts);
+        endDate.toLocaleDateString("nl-NL", labelOpts) +
+        (currentProjectFilter ? " · Project: " + currentProjectFilter : "");
 
       const totalWidth = GANTT_WINDOW_DAYS * GANTT_DAY_WIDTH;
       ganttGrid.style.width = totalWidth + "px";
@@ -763,8 +904,17 @@
         const weekday = day
           .toLocaleDateString("nl-NL", { weekday: "short" })
           .replace(/\.$/, "");
+        const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+        const isToday = isSameDay(day, todayStart);
+        if (isWeekend) div.classList.add("is-weekend");
+        if (isToday) div.classList.add("is-today");
+        div.title = formatShortDate(day) + " (" + weekday.toLowerCase() + ")";
         div.innerHTML =
-          "<strong>" + formatShortDate(day) + "</strong>" + weekday.toLowerCase();
+          "<strong>" +
+          formatShortDate(day) +
+          "</strong><span class=\"gantt-weekday\">" +
+          weekday.toLowerCase() +
+          "</span>";
         ganttGrid.appendChild(div);
       }
 
@@ -773,16 +923,19 @@
       const minWidthPx = Math.max(24, GANTT_DAY_WIDTH * 0.6);
 
       const sortedTasks = ganttTasks.slice().sort((a, b) => {
-        return new Date(a.dueDate) - new Date(b.dueDate);
+        return new Date(a.endDate || a.dueDate) - new Date(b.endDate || b.dueDate);
       });
 
       sortedTasks.forEach((task, index) => {
-        const due = new Date(task.dueDate);
-        if (isNaN(due)) return;
-        const created = task.createdAt ? new Date(task.createdAt) : null;
-        const createdMs = created && !isNaN(created) ? created.getTime() : todayStart.getTime();
-        let barStartMs = Math.max(rangeStartMs, createdMs);
-        let barEndMs = Math.min(rangeEndMs, due.getTime());
+        const end = startOfDay(new Date(task.endDate || task.dueDate));
+        if (isNaN(end)) return;
+        const start = startOfDay(
+          new Date(task.startDate || task.createdAt || task.endDate || task.dueDate)
+        );
+
+        const startMs = !isNaN(start) ? start.getTime() : todayStart.getTime();
+        let barStartMs = Math.max(rangeStartMs, startMs);
+        let barEndMs = Math.min(rangeEndMs, end.getTime() + MS_PER_DAY);
 
         if (barEndMs <= rangeStartMs) {
           return;
@@ -804,11 +957,19 @@
         bar.style.left = leftPx + "px";
         bar.style.top = index * 38 + "px";
         bar.style.width = widthPx + "px";
+        bar.title =
+          task.title +
+          " — " +
+          formatShortDate(start) +
+          " → " +
+          formatShortDate(end);
         bar.innerHTML =
           '<span class="gantt-title">' +
           escapeHtml(task.title) +
           '</span><span class="gantt-date">' +
-          formatShortDate(due) +
+          formatShortDate(start) +
+          " → " +
+          formatShortDate(end) +
           "</span>";
         ganttBars.appendChild(bar);
       });
@@ -818,6 +979,24 @@
       const inner = ganttTrack.querySelector(".gantt-track-inner");
       if (inner) {
         inner.style.minHeight = Math.max(160, height + 80) + "px";
+
+        let todayLine = inner.querySelector(".gantt-today-line");
+        if (!todayLine) {
+          todayLine = document.createElement("div");
+          todayLine.className = "gantt-today-line";
+          inner.appendChild(todayLine);
+        }
+
+        const todayMs = todayStart.getTime();
+        const inRange = todayMs >= rangeStartMs && todayMs <= rangeEndMs;
+        if (inRange) {
+          const leftPx = ((todayMs - rangeStartMs) / MS_PER_DAY) * GANTT_DAY_WIDTH;
+          todayLine.style.left = leftPx + "px";
+          todayLine.style.display = "block";
+          todayLine.title = "Vandaag";
+        } else {
+          todayLine.style.display = "none";
+        }
       }
     }
 
@@ -846,8 +1025,21 @@
       const metaRow = document.createElement("div");
       metaRow.className = "task-meta-row";
 
-      if (task.dueDate) {
-        const d = new Date(task.dueDate + "T00:00:00");
+      const startVal = task.startDate || null;
+      const endVal = task.endDate || task.dueDate || null;
+
+      if (startVal) {
+        const s = new Date(startVal + "T00:00:00");
+        if (!isNaN(s)) {
+          const startPill = document.createElement("span");
+          startPill.className = "task-pill";
+          startPill.textContent = "▶ start " + formatShortDate(s);
+          metaRow.appendChild(startPill);
+        }
+      }
+
+      if (endVal) {
+        const d = new Date(endVal + "T00:00:00");
         if (!isNaN(d)) {
           const today = new Date();
           const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -857,14 +1049,14 @@
           pill.className = "task-pill task-pill--due";
 
           if (isSameDay(d, today)) {
-            pill.textContent = "🕒 vandaag";
+            pill.textContent = "🕒 eind vandaag";
           } else if (diffDays === 1) {
-            pill.textContent = "🕒 morgen";
+            pill.textContent = "🕒 eind morgen";
           } else if (diffDays < 0) {
             pill.textContent = "🕒 te laat (" + formatShortDate(d) + ")";
             pill.classList.add("task-pill--due-overdue");
           } else {
-            pill.textContent = "🕒 " + formatShortDate(d);
+            pill.textContent = "🕒 eind " + formatShortDate(d);
           }
           metaRow.appendChild(pill);
         }
@@ -884,6 +1076,14 @@
           prio.textContent = "prio: laag";
         }
         metaRow.appendChild(prio);
+      }
+
+      const projectName = normalizeProject(task.project);
+      if (projectName) {
+        const projectPill = document.createElement("span");
+        projectPill.className = "task-pill task-pill--project";
+        projectPill.textContent = projectName;
+        metaRow.appendChild(projectPill);
       }
 
       if (task.linkUrl) {
@@ -941,8 +1141,10 @@
       taskForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const title = taskTitleInput.value.trim();
-        const due = taskDueInput.value.trim();
+        const start = taskStartInput.value.trim();
+        const end = taskEndInput.value.trim();
         const prio = taskPriorityInput.value || "";
+        const projectName = normalizeProject(taskProjectInput.value);
         const linkRaw = taskLinkInput.value.trim();
 
         if (!title) return;
@@ -952,9 +1154,12 @@
           title,
           done: false,
           createdAt: new Date().toISOString(),
-          dueDate: due || null,
+          startDate: start || null,
+          endDate: end || null,
+          dueDate: end || null,
           priority: prio || null,
           linkUrl: linkRaw ? normalizeUrl(linkRaw) : null,
+          project: projectName || null,
         };
 
         tasks.push(newTask);
@@ -1224,10 +1429,12 @@
           termPrint("Tasklist-commando's:");
           termPrint("  t-help                 - toon dit overzicht");
           termPrint("  t-list [open|done|all] - toon taken (default: open)");
-          termPrint("  t-add t|[due]|[prio]|[url]");
-          termPrint("       due  = YYYY-MM-DD (optioneel)");
-          termPrint("       prio = high | normal | low (optioneel)");
-          termPrint("       url  = gerelateerde link (optioneel)");
+          termPrint("  t-add t|[start]|[end]|[prio]|[url]|[project]");
+          termPrint("       start   = YYYY-MM-DD (optioneel)");
+          termPrint("       end     = YYYY-MM-DD (optioneel)");
+          termPrint("       prio    = high | normal | low (optioneel)");
+          termPrint("       url     = gerelateerde link (optioneel)");
+          termPrint("       project = naam van project (optioneel)");
           termPrint("  t-done <index>         - markeer open taak als gedaan");
           termPrint("  t-del <index>          - verwijder open taak");
           termPrint("  t-clear-done           - verwijder alle afgeronde taken");
@@ -1235,19 +1442,30 @@
 
         case "t-list": {
           const mode = (argStr || "open").toLowerCase();
-          const openTasks = tasks.filter((t) => !t.done);
-          const doneTasks = tasks.filter((t) => t.done);
+          const openTasks = tasks.filter((t) => !t.done && matchesProject(t));
+          const doneTasks = tasks.filter((t) => t.done && matchesProject(t));
+
+          const formatRange = (task) => {
+            const start = task.startDate || "";
+            const end = task.endDate || task.dueDate || "";
+            if (!start && !end) return "";
+            if (start && end) return " [" + start + "→" + end + "]";
+            return " [" + (start || end) + "]";
+          };
 
           if (mode === "open") {
             if (!openTasks.length) return termPrint("Geen open taken.");
             termPrint("Open taken:");
             openTasks.forEach((t, idx) => {
-              const dueStr = t.dueDate ? (" [" + t.dueDate + "]") : "";
+              const rangeStr = formatRange(t);
               const prioStr = t.priority ? (" (" + t.priority + ")") : "";
+              const projectStr = t.project
+                ? " {" + escapeHtml(t.project) + "}"
+                : "";
               termPrint(
                 "[" + idx + "] " +
                 escapeHtml(t.title) +
-                dueStr + prioStr
+                rangeStr + prioStr + projectStr
               );
             });
             termPrint("Index hierboven gebruik je met t-done en t-del.");
@@ -1255,35 +1473,44 @@
             if (!doneTasks.length) return termPrint("Geen afgeronde taken.");
             termPrint("Afgeronde taken:");
             doneTasks.forEach((t, idx) => {
-              const dueStr = t.dueDate ? (" [" + t.dueDate + "]") : "";
+              const rangeStr = formatRange(t);
               const prioStr = t.priority ? (" (" + t.priority + ")") : "";
+              const projectStr = t.project
+                ? " {" + escapeHtml(t.project) + "}"
+                : "";
               termPrint(
                 "[" + idx + "] " +
                 escapeHtml(t.title) +
-                dueStr + prioStr
+                rangeStr + prioStr + projectStr
               );
             });
           } else if (mode === "all") {
             if (!tasks.length) return termPrint("Geen taken.");
             termPrint("Open taken:");
             openTasks.forEach((t, idx) => {
-              const dueStr = t.dueDate ? (" [" + t.dueDate + "]") : "";
+              const rangeStr = formatRange(t);
               const prioStr = t.priority ? (" (" + t.priority + ")") : "";
+              const projectStr = t.project
+                ? " {" + escapeHtml(t.project) + "}"
+                : "";
               termPrint(
                 "[O" + idx + "] " +
                 escapeHtml(t.title) +
-                dueStr + prioStr
+                rangeStr + prioStr + projectStr
               );
             });
             termPrint("");
             termPrint("Afgeronde taken:");
             doneTasks.forEach((t, idx) => {
-              const dueStr = t.dueDate ? (" [" + t.dueDate + "]") : "";
+              const rangeStr = formatRange(t);
               const prioStr = t.priority ? (" (" + t.priority + ")") : "";
+              const projectStr = t.project
+                ? " {" + escapeHtml(t.project) + "}"
+                : "";
               termPrint(
                 "[D" + idx + "] " +
                 escapeHtml(t.title) +
-                dueStr + prioStr
+                rangeStr + prioStr + projectStr
               );
             });
           } else {
@@ -1294,25 +1521,34 @@
 
         case "t-add": {
           if (!argStr) {
-            termPrintError("Gebruik: t-add titel|[due]|[prio]|[url]");
+            termPrintError("Gebruik: t-add titel|[start]|[end]|[prio]|[url]|[project]");
             break;
           }
           const parts = argStr.split("|");
           const title = (parts[0] || "").trim();
-          const dueRaw = (parts[1] || "").trim();
-          const prioRaw = (parts[2] || "").trim().toLowerCase();
-          const urlRaw = (parts[3] || "").trim();
+          const startRaw = (parts[1] || "").trim();
+          const endRaw = (parts[2] || "").trim();
+          const prioRaw = (parts[3] || "").trim().toLowerCase();
+          const urlRaw = (parts[4] || "").trim();
+          const projectRaw = normalizeProject(parts[5] || "");
 
           if (!title) {
             termPrintError("Titel is verplicht.");
             break;
           }
 
-          let due = null;
-          if (dueRaw && /^\d{4}-\d{2}-\d{2}$/.test(dueRaw)) {
-            due = dueRaw;
-          } else if (dueRaw) {
-            termPrint("Waarschuwing: due date niet herkend, overslagen.");
+          let start = null;
+          if (startRaw && /^\d{4}-\d{2}-\d{2}$/.test(startRaw)) {
+            start = startRaw;
+          } else if (startRaw) {
+            termPrint("Waarschuwing: startdatum niet herkend, overslagen.");
+          }
+
+          let end = null;
+          if (endRaw && /^\d{4}-\d{2}-\d{2}$/.test(endRaw)) {
+            end = endRaw;
+          } else if (endRaw) {
+            termPrint("Waarschuwing: einddatum niet herkend, overslagen.");
           }
 
           let prio = null;
@@ -1327,9 +1563,12 @@
             title,
             done: false,
             createdAt: new Date().toISOString(),
-            dueDate: due,
+            startDate: start,
+            endDate: end,
+            dueDate: end,
             priority: prio,
             linkUrl: urlRaw ? normalizeUrl(urlRaw) : null,
+            project: projectRaw || null,
           };
 
           tasks.push(newTask);
@@ -1345,7 +1584,7 @@
             break;
           }
           const idx = parseInt(argStr, 10);
-          const openTasks = tasks.filter((t) => !t.done);
+          const openTasks = tasks.filter((t) => !t.done && matchesProject(t));
           if (isNaN(idx) || idx < 0 || idx >= openTasks.length) {
             termPrintError("Ongeldige index (gebruik index uit t-list).");
             break;
@@ -1366,7 +1605,7 @@
             break;
           }
           const idx = parseInt(argStr, 10);
-          const openTasks = tasks.filter((t) => !t.done);
+          const openTasks = tasks.filter((t) => !t.done && matchesProject(t));
           if (isNaN(idx) || idx < 0 || idx >= openTasks.length) {
             termPrintError("Ongeldige index (alleen open taken).");
             break;
@@ -1381,8 +1620,8 @@
         }
 
         case "t-clear-done": {
-          const hadDone = tasks.some((t) => t.done);
-          tasks = tasks.filter((t) => !t.done);
+          const hadDone = tasks.some((t) => t.done && matchesProject(t));
+          tasks = tasks.filter((t) => !(t.done && matchesProject(t)));
           saveTasksToStorage();
           renderTasks();
           termPrint(hadDone ? "Alle afgeronde taken verwijderd." : "Geen afgeronde taken.");
@@ -1565,6 +1804,7 @@
               url: String(item.url || "").trim(),
               category: String(item.category || "").trim(),
               createdAt: item.createdAt || new Date().toISOString(),
+              project: normalizeProject(item.project),
             }))
             .filter((item) => item.url);
 

@@ -232,6 +232,41 @@
       margin-bottom: 16px;
     }
 
+    .project-filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .project-filter-label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .project-filter-select {
+      min-width: 180px;
+      max-width: 260px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-soft);
+      background: var(--bg-input);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: border var(--transition-fast), box-shadow var(--transition-fast),
+        background var(--transition-fast);
+    }
+
+    .project-filter-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+      background: #0f151d;
+    }
+
     .chip {
       border-radius: 999px;
       padding: 4px 10px;
@@ -311,7 +346,12 @@
 
     .link-form {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 1.1fr) auto;
+      grid-template-columns:
+        minmax(0, 1.1fr)
+        minmax(0, 1.3fr)
+        minmax(0, 1.05fr)
+        minmax(0, 1.05fr)
+        auto;
       gap: 8px;
     }
 
@@ -452,6 +492,37 @@
 
     .link-url:hover { text-decoration: underline; }
 
+    .link-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .link-pill {
+      padding: 2px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: rgba(6, 12, 18, 0.6);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .link-pill.category {
+      border-color: #4fa3ff;
+      color: #b3d8ff;
+      background: rgba(79, 163, 255, 0.08);
+    }
+
+    .link-pill.project {
+      border-color: #5effb9;
+      color: #baffde;
+      background: rgba(94, 255, 185, 0.06);
+    }
+
     .link-actions {
       display: flex;
       gap: 6px;
@@ -509,7 +580,14 @@
 
     .task-form {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 1.6fr) auto;
+      grid-template-columns:
+        minmax(0, 2.1fr)
+        minmax(0, 1.1fr)
+        minmax(0, 1.1fr)
+        minmax(0, 1fr)
+        minmax(0, 1.2fr)
+        minmax(0, 1.5fr)
+        auto;
       gap: 8px;
       margin-bottom: 14px;
       padding-bottom: 8px;
@@ -637,6 +715,12 @@
       border-color: #4fa3ff;
       color: #c4e0ff;
       cursor: pointer;
+    }
+
+    .task-pill--project {
+      border-color: #5effb9;
+      color: #baffde;
+      background: rgba(94, 255, 185, 0.06);
     }
 
     .task-actions {
@@ -860,6 +944,23 @@
       margin-bottom: 2px;
     }
 
+    .gantt-weekday {
+      display: block;
+    }
+
+    .gantt-day.is-weekend {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .gantt-day.is-today {
+      background: linear-gradient(180deg, rgba(92, 255, 143, 0.08), transparent);
+      border-top: 1px solid rgba(92, 255, 143, 0.35);
+      border-bottom: 1px solid rgba(92, 255, 143, 0.18);
+      color: #d0ffe3;
+      box-shadow: inset 0 0 0 1px rgba(92, 255, 143, 0.2);
+    }
+
     .gantt-bars {
       position: absolute;
       left: 0;
@@ -895,6 +996,16 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.18em;
+    }
+
+    .gantt-today-line {
+      position: absolute;
+      top: 40px;
+      bottom: 12px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(92, 255, 143, 0.9), rgba(92, 255, 143, 0.2));
+      box-shadow: 0 0 12px rgba(92, 255, 143, 0.5);
+      pointer-events: none;
     }
 
     .gantt-bar.priority-high {
@@ -989,15 +1100,24 @@
       }
 
       .task-form {
-        grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.4fr) minmax(0, 1.2fr) minmax(0, 1.8fr) auto;
+        grid-template-columns:
+          minmax(0, 2.5fr)
+          minmax(0, 1.2fr)
+          minmax(0, 1.2fr)
+          minmax(0, 1fr)
+          minmax(0, 1.2fr)
+          minmax(0, 2fr)
+          auto;
         grid-template-areas:
-          "title title title title button"
-          "due   prio  link  link  button";
+          "title title title start end   project button"
+          "link  link  link  prio  prio  project button";
       }
 
       #taskTitleInput    { grid-area: title; }
-      #taskDueInput      { grid-area: due; }
+      #taskStartInput    { grid-area: start; }
+      #taskEndInput      { grid-area: end; }
       #taskPriorityInput { grid-area: prio; }
+      #taskProjectInput  { grid-area: project; }
       #taskLinkInput     { grid-area: link; }
       .task-add-btn      { grid-area: button; align-self: stretch; }
     }

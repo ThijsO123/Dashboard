@@ -56,6 +56,16 @@
         <button type="button" class="chip" data-filter="week">Deze week</button>
       </section>
 
+      <!-- Project filter -->
+      <section class="project-filter">
+        <label for="projectFilterSelect" class="project-filter-label">
+          Projectfilter
+        </label>
+        <select id="projectFilterSelect" class="project-filter-select">
+          <option value="">Alle projecten</option>
+        </select>
+      </section>
+
       <!-- New link -->
       <section class="new-link-card" id="newLinkSection">
         <div class="new-link-label">+ Nieuwe link toevoegen</div>
@@ -83,6 +93,16 @@
               list="categorySuggestions"
             />
             <datalist id="categorySuggestions"></datalist>
+          </div>
+          <div>
+            <input
+              id="projectInput"
+              class="input-field"
+              type="text"
+              placeholder="Project (optioneel)"
+              list="projectSuggestions"
+            />
+            <datalist id="projectSuggestions"></datalist>
           </div>
           <button type="submit" class="btn-primary btn-add">
             <span>+</span> Toevoegen
@@ -122,9 +142,16 @@
               required
             />
             <input
-              id="taskDueInput"
+              id="taskStartInput"
               class="input-field"
               type="date"
+              placeholder="Startdatum"
+            />
+            <input
+              id="taskEndInput"
+              class="input-field"
+              type="date"
+              placeholder="Einddatum"
             />
             <select id="taskPriorityInput" class="input-field">
               <option value="">Prio</option>
@@ -132,6 +159,13 @@
               <option value="normal">Normaal</option>
               <option value="low">Laag</option>
             </select>
+            <input
+              id="taskProjectInput"
+              class="input-field"
+              type="text"
+              placeholder="Project (optioneel)"
+              list="projectSuggestions"
+            />
             <input
               id="taskLinkInput"
               class="input-field"
