@@ -107,7 +107,8 @@
     .tasklist-label,
     .gantt-label,
     .terminal-title,
-    .category-title {
+    .category-title,
+    .notes-label {
       font-size: 11px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
@@ -769,10 +770,142 @@
       gap: 4px;
     }
 
+    /* Notes pad */
+
+    .notes {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      background: #0a0e13;
+      padding: 14px 14px 12px;
+    }
+
+    .notes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: var(--text-muted);
+    }
+
+    .note-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .note-textarea {
+      min-height: 68px;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    .note-form-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .note-add-btn {
+      white-space: nowrap;
+      height: 100%;
+      align-self: stretch;
+    }
+
+    .notes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .note-card {
+      background: #0e131b;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      padding: 10px 10px 9px;
+      position: relative;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .note-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .note-stamp { color: var(--text-muted); }
+
+    .note-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.45;
+      padding: 6px 8px;
+      border-radius: var(--radius);
+      border: 1px dashed transparent;
+      transition: border var(--transition-fast), background var(--transition-fast);
+    }
+
+    .note-text:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #0f161f;
+    }
+
+    .note-meta {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .note-project {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(92, 255, 143, 0.06);
+      color: var(--text-main);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .note-delete {
+      border-radius: 999px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f141c;
+      border-color: var(--border-soft);
+      color: var(--text-muted);
+    }
+
+    .note-delete:hover { color: #ff7b95; border-color: #272b32; }
+
+    .note-empty {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
     /* Terminal */
 
     .terminal {
-      margin-top: 28px;
+      margin-top: 32px;
       border-radius: var(--radius);
       border: 1px solid var(--border-soft);
       background: #05090f;
@@ -920,7 +1053,7 @@
       column-gap: 18px;
       align-items: start;
       position: relative;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
 
     .workspace-divider {
@@ -931,12 +1064,18 @@
       min-height: 100%;
     }
 
+    .workspace-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
     .gantt-panel {
       border-radius: var(--radius);
       border: 1px solid var(--border-soft);
       background: #05080f;
       padding: 20px;
-      margin-top: 12px;
+      margin-top: 20px;
     }
 
     .gantt-header {
@@ -1163,7 +1302,7 @@
         pointer-events: none;
       }
 
-      .terminal { margin-top: 18px; }
+      .terminal { margin-top: 22px; }
 
       .terminal-output { max-height: 140px; }
 
@@ -1176,6 +1315,8 @@
         grid-template-columns: 1fr;
         row-gap: 18px;
       }
+
+      .workspace-right { gap: 14px; }
 
       .workspace-divider { display: none; }
     }

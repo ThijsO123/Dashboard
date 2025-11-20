@@ -61,7 +61,7 @@
         <label for="projectFilterSelect" class="project-filter-label">
           Projectfilter
         </label>
-        <p class="project-filter-sub">Filtert links, taken en planning.</p>
+        <p class="project-filter-sub">Filtert links, taken, notes en planning.</p>
         <select id="projectFilterSelect" class="project-filter-select">
           <option value="">Alle projecten</option>
         </select>
@@ -125,75 +125,107 @@
 
         <div class="workspace-divider" aria-hidden="true"></div>
 
-        <!-- TASKLIST.APP -->
-        <section class="tasklist" id="tasklistSection">
-          <div class="tasklist-header">
-            <div class="tasklist-label">
-              <span class="tasklist-icon" aria-hidden="true">☰</span>
-              TASKLIST.APP
+        <div class="workspace-right">
+          <!-- TASKLIST.APP -->
+          <section class="tasklist" id="tasklistSection">
+            <div class="tasklist-header">
+              <div class="tasklist-label">
+                <span class="tasklist-icon" aria-hidden="true">☰</span>
+                TASKLIST.APP
+              </div>
+              <div class="tasklist-meta">
+                <span id="taskCountOpen">0 open</span>
+                <span>•</span>
+                <span id="taskCountDone">0 gedaan</span>
+              </div>
             </div>
-            <div class="tasklist-meta">
-              <span id="taskCountOpen">0 open</span>
-              <span>•</span>
-              <span id="taskCountDone">0 gedaan</span>
-            </div>
-          </div>
 
-          <form id="taskForm" class="task-form" autocomplete="off">
-            <input
-              id="taskTitleInput"
-              class="input-field"
-              type="text"
-              placeholder="Taak..."
-              required
-            />
-            <input
-              id="taskStartInput"
-              class="input-field"
-              type="date"
-              placeholder="Startdatum"
-            />
-            <input
-              id="taskEndInput"
-              class="input-field"
-              type="date"
-              placeholder="Einddatum"
-            />
-            <select id="taskPriorityInput" class="input-field">
-              <option value="">Prio</option>
-              <option value="high">Hoog</option>
-              <option value="normal">Normaal</option>
-              <option value="low">Laag</option>
-            </select>
-            <input
-              id="taskProjectInput"
-              class="input-field"
-              type="text"
-              placeholder="Project (optioneel)"
-              list="projectSuggestions"
-            />
-            <input
-              id="taskLinkInput"
-              class="input-field"
-              type="url"
-              placeholder="URL (optioneel)"
-            />
-            <button type="submit" class="btn-primary task-add-btn">
-              + Taak
-            </button>
-          </form>
+            <form id="taskForm" class="task-form" autocomplete="off">
+              <input
+                id="taskTitleInput"
+                class="input-field"
+                type="text"
+                placeholder="Taak..."
+                required
+              />
+              <input
+                id="taskStartInput"
+                class="input-field"
+                type="date"
+                placeholder="Startdatum"
+              />
+              <input
+                id="taskEndInput"
+                class="input-field"
+                type="date"
+                placeholder="Einddatum"
+              />
+              <select id="taskPriorityInput" class="input-field">
+                <option value="">Prio</option>
+                <option value="high">Hoog</option>
+                <option value="normal">Normaal</option>
+                <option value="low">Laag</option>
+              </select>
+              <input
+                id="taskProjectInput"
+                class="input-field"
+                type="text"
+                placeholder="Project (optioneel)"
+                list="projectSuggestions"
+              />
+              <input
+                id="taskLinkInput"
+                class="input-field"
+                type="url"
+                placeholder="URL (optioneel)"
+              />
+              <button type="submit" class="btn-primary task-add-btn">
+                + Taak
+              </button>
+            </form>
 
-          <div class="task-columns">
-            <div class="task-column">
-              <div class="task-column-title">Open</div>
-              <div id="taskListOpen" class="task-list"></div>
+            <div class="task-columns">
+              <div class="task-column">
+                <div class="task-column-title">Open</div>
+                <div id="taskListOpen" class="task-list"></div>
+              </div>
+              <div class="task-column">
+                <div class="task-column-title">Gedaan</div>
+                <div id="taskListDone" class="task-list"></div>
+              </div>
             </div>
-            <div class="task-column">
-              <div class="task-column-title">Gedaan</div>
-              <div id="taskListDone" class="task-list"></div>
+          </section>
+
+          <!-- NOTES -->
+          <section class="notes" id="notesSection">
+            <div class="notes-header">
+              <div class="notes-label">NOTES.PAD</div>
             </div>
-          </div>
-        </section>
+
+            <form id="noteForm" class="note-form" autocomplete="off">
+              <textarea
+                id="noteTextInput"
+                class="input-field note-textarea"
+                placeholder="Notitie..."
+                rows="2"
+              ></textarea>
+              <div class="note-form-row">
+                <input
+                  id="noteProjectInput"
+                  class="input-field"
+                  type="text"
+                  placeholder="Project (optioneel)"
+                  list="projectSuggestions"
+                />
+                <button type="submit" class="btn-primary note-add-btn">
+                  + Note
+                </button>
+              </div>
+            </form>
+
+            <div id="notesList" class="notes-list"></div>
+          </section>
+        </div>
       </div>
 
       <!-- GANTT planning gekoppeld aan taken -->

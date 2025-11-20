@@ -79,6 +79,7 @@
     let lastModified = null;
     let currentCategoriesCount = 0;
     let categoryPulseName = null;
+    let notes = [];
 
     function loadLinksFromStorage() {
       try {
@@ -149,6 +150,10 @@
       });
       tasks.forEach((t) => {
         const p = normalizeProject(t.project);
+        if (p) set.add(p);
+      });
+      notes.forEach((n) => {
+        const p = normalizeProject(n.project);
         if (p) set.add(p);
       });
       return Array.from(set).sort((a, b) =>
@@ -688,6 +693,7 @@
         currentProjectFilter = projectFilterSelect.value.trim();
         renderLinks();
         renderTasks();
+        renderNotes();
       });
     }
 
@@ -1192,6 +1198,170 @@
 
         taskForm.reset();
         taskTitleInput.focus();
+      });
+    }
+
+    // --- NOTES DATA -------------------------------------------------------
+    const NOTES_STORAGE_KEY = "workNotesDataV1";
+
+    /**
+     * @typedef {{
+     *  id: string,
+     *  text: string,
+     *  project: string | null,
+     *  createdAt: string
+     * }} NoteItem
+     */
+
+    const noteForm = document.getElementById("noteForm");
+    const noteTextInput = document.getElementById("noteTextInput");
+    const noteProjectInput = document.getElementById("noteProjectInput");
+    const notesList = document.getElementById("notesList");
+
+    function loadNotesFromStorage() {
+      try {
+        const raw = localStorage.getItem(NOTES_STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          // Keep notes normalized so project filters and inline editing stay consistent.
+          notes = parsed.map((n) => ({
+            id: n.id || String(Date.now() + Math.random()),
+            text: String(n.text || "").trim() || "Notitie",
+            project: normalizeProject(n.project) || null,
+            createdAt: n.createdAt || new Date().toISOString(),
+          }));
+        }
+      } catch (err) {
+        console.error("Kon notes niet laden:", err);
+      }
+    }
+
+    function saveNotesToStorage() {
+      try {
+        localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+      } catch (err) {
+        console.error("Kon notes niet opslaan:", err);
+      }
+    }
+
+    function deleteNote(id) {
+      notes = notes.filter((n) => n.id !== id);
+      saveNotesToStorage();
+      renderNotes();
+    }
+
+    function renderNoteCard(note) {
+      const card = document.createElement("article");
+      card.className = "note-card";
+      card.dataset.id = note.id;
+
+      const top = document.createElement("div");
+      top.className = "note-top";
+
+      const created = note.createdAt ? new Date(note.createdAt) : null;
+      const stamp = document.createElement("span");
+      stamp.className = "note-stamp";
+      stamp.textContent = created && !isNaN(created) ? formatShortDate(created) : "Note";
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "note-delete";
+      del.title = "Notitie verwijderen";
+      del.textContent = "✕";
+      del.addEventListener("click", () => deleteNote(note.id));
+
+      top.appendChild(stamp);
+      top.appendChild(del);
+
+      const textEl = document.createElement("div");
+      textEl.className = "note-text";
+      textEl.contentEditable = "true";
+      textEl.spellcheck = false;
+      textEl.textContent = note.text;
+      textEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          textEl.blur();
+        }
+      });
+      textEl.addEventListener("blur", () => {
+        const newVal = textEl.textContent.trim();
+        if (!newVal) {
+          textEl.textContent = note.text;
+          return;
+        }
+        if (newVal === note.text) return;
+        note.text = newVal;
+        saveNotesToStorage();
+      });
+
+      const meta = document.createElement("div");
+      meta.className = "note-meta";
+
+      if (note.project) {
+        const badge = document.createElement("span");
+        badge.className = "note-project";
+        badge.textContent = note.project;
+        meta.appendChild(badge);
+      }
+
+      if (meta.childNodes.length === 0) {
+        meta.style.minHeight = "1px";
+      }
+
+      card.appendChild(top);
+      card.appendChild(textEl);
+      card.appendChild(meta);
+
+      return card;
+    }
+
+    function renderNotes() {
+      if (!notesList) return;
+
+      notesList.innerHTML = "";
+      const visibleNotes = notes.filter((n) => matchesProject(n));
+
+      if (!visibleNotes.length) {
+        const empty = document.createElement("div");
+        empty.className = "note-empty";
+        empty.textContent = currentProjectFilter
+          ? "Geen notities voor dit project."
+          : "Nog geen notities.";
+        notesList.appendChild(empty);
+      } else {
+        visibleNotes
+          .slice()
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .forEach((note) => notesList.appendChild(renderNoteCard(note)));
+      }
+
+      // Keep the shared project dropdown/datalist in sync with note projects too.
+      updateProjectFilterOptions();
+      updateProjectSuggestions();
+    }
+
+    if (noteForm) {
+      noteForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = noteTextInput.value.trim();
+        const projectName = normalizeProject(noteProjectInput.value);
+        if (!text) return;
+
+        const newNote = {
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+          text,
+          project: projectName || null,
+          createdAt: new Date().toISOString(),
+        };
+
+        notes.push(newNote);
+        saveNotesToStorage();
+        renderNotes();
+
+        noteForm.reset();
+        noteTextInput.focus();
       });
     }
 
@@ -1871,9 +2041,10 @@
     // --- Init -------------------------------------------------------------
     loadLinksFromStorage();
     loadLastModified();
-    renderLinks();
-
     loadTasksFromStorage();
+    loadNotesFromStorage();
+    renderLinks();
     renderTasks();
+    renderNotes();
 
     printMotd();
