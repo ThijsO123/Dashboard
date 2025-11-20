@@ -920,6 +920,17 @@
         ganttGrid.appendChild(div);
       }
 
+      const gridHeight = ganttGrid.offsetHeight || 0;
+      const barOffset = gridHeight + 12;
+      document.documentElement.style.setProperty(
+        "--gantt-grid-height",
+        gridHeight + "px"
+      );
+      document.documentElement.style.setProperty(
+        "--gantt-bar-offset",
+        barOffset + "px"
+      );
+
       const rangeStartMs = startDate.getTime();
       const rangeEndMs = endDate.getTime() + MS_PER_DAY;
       const minWidthPx = Math.max(24, GANTT_DAY_WIDTH * 0.6);

@@ -12,7 +12,8 @@
       --transition-fast: 0.15s ease-out;
       --gantt-bar-height: 72px;
       --gantt-bar-gap: 16px;
-      --gantt-track-offset: 76px;
+      --gantt-grid-height: 64px;
+      --gantt-bar-offset: calc(var(--gantt-grid-height) + 12px);
     }
 
     * { box-sizing: border-box; }
@@ -917,13 +918,16 @@
     .gantt-track-inner {
       position: relative;
       min-height: 180px;
-      padding-top: var(--gantt-track-offset);
+      padding-top: 0;
     }
 
     .gantt-grid {
       display: flex;
       gap: 0;
       border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 6px;
+      position: relative;
+      z-index: 2;
     }
 
     .gantt-day {
@@ -967,7 +971,7 @@
     .gantt-bars {
       position: absolute;
       left: 0;
-      top: var(--gantt-track-offset);
+      top: var(--gantt-bar-offset);
       pointer-events: none;
     }
 
@@ -1008,7 +1012,7 @@
 
     .gantt-today-line {
       position: absolute;
-      top: calc(var(--gantt-track-offset) - 20px);
+      top: calc(var(--gantt-bar-offset) - 20px);
       bottom: 12px;
       width: 2px;
       background: linear-gradient(180deg, rgba(92, 255, 143, 0.9), rgba(92, 255, 143, 0.2));
