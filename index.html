@@ -18,6 +18,7 @@
       <div class="date-display" id="dateDisplay">
         datum wordt geladen…
       </div>
+      <div class="today-summary" id="todaySummary">Vandaag: — open taken · — due · — inbox links</div>
     </header>
 
     <main>
@@ -65,6 +66,21 @@
         <select id="projectFilterSelect" class="project-filter-select">
           <option value="">Alle projecten</option>
         </select>
+      </section>
+
+      <!-- Quick capture bar -->
+      <section class="quick-capture" id="quickCaptureSection">
+        <div class="quick-capture-label">QUICK.CAPTURE</div>
+        <form id="quickCaptureForm" class="quick-capture-form" autocomplete="off">
+          <input
+            type="text"
+            id="quickCaptureInput"
+            class="input-field quick-capture-input"
+            placeholder="Snel iets kwijt? Typ hier…"
+          />
+          <button type="submit" class="btn-primary quick-capture-btn">Add</button>
+        </form>
+        <p class="quick-capture-hint">URLs worden als link opgeslagen, andere tekst als taak.</p>
       </section>
 
       <!-- New link -->
@@ -126,6 +142,19 @@
         <div class="workspace-divider" aria-hidden="true"></div>
 
         <div class="workspace-right">
+          <div class="focus-timer" id="focusTimer">
+            <div class="focus-timer-label">FOCUS.TIMER</div>
+            <div class="focus-timer-controls">
+              <select id="focusTimerDuration" class="input-field focus-timer-select">
+                <option value="25">25 min</option>
+                <option value="50">50 min</option>
+              </select>
+              <div class="focus-timer-display" id="focusTimerDisplay">00:00</div>
+              <button type="button" class="btn-ghost focus-timer-btn" id="focusTimerToggle">Start</button>
+            </div>
+            <div class="focus-timer-message" id="focusTimerMessage"></div>
+          </div>
+
           <!-- TASKLIST.APP -->
           <section class="tasklist" id="tasklistSection">
             <div class="tasklist-header">

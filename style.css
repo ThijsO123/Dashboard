@@ -101,6 +101,13 @@
       color: var(--text-muted);
     }
 
+    .today-summary {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
     /* Shared section labels */
 
     .section-label,
@@ -108,7 +115,9 @@
     .gantt-label,
     .terminal-title,
     .category-title,
-    .notes-label {
+    .notes-label,
+    .quick-capture-label,
+    .focus-timer-label {
       font-size: 11px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
@@ -289,6 +298,38 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 1px var(--accent-soft);
       background: #0f151d;
+    }
+
+    .quick-capture {
+      border: 1px dashed var(--border-soft);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 18px;
+      background: rgba(10, 14, 19, 0.6);
+    }
+
+    .quick-capture-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0 4px;
+    }
+
+    .quick-capture-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .quick-capture-btn {
+      padding-inline: 14px;
+      flex-shrink: 0;
+    }
+
+    .quick-capture-hint {
+      margin: 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
     }
 
     .chip {
@@ -1068,6 +1109,56 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+    }
+
+    .focus-timer {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: linear-gradient(120deg, rgba(8,12,17,0.85), rgba(10,14,20,0.65));
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .focus-timer.is-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+
+    .focus-timer.is-finished .focus-timer-display {
+      color: #ffd166;
+    }
+
+    .focus-timer-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .focus-timer-select {
+      width: 90px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .focus-timer-display {
+      min-width: 68px;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .focus-timer-btn {
+      padding-inline: 10px;
+    }
+
+    .focus-timer-message {
+      min-height: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
     .gantt-panel {

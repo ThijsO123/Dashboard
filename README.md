@@ -7,9 +7,9 @@ Dashoard for loading webpages and tracking plannig.
 De pagina is in logische blokken opgebouwd:
 
 - **Header:** datum- en weekindicatie bovenaan de pagina.
-- **Zoek- en filterbalk:** een zoekveld met import/export-knoppen, gevolgd door snelle tijdsfilters en een projectfilter.
-- **Invoerkaarten:** aparte formulieren voor nieuwe links en taken, inclusief project- en prioriteitsvelden.
-- **Workspace:** drie hoofdpanelen — links per categorie, de tasklist (open/gedaan) en daaronder de Gantt-planning met legend.
+- **Zoek- en filterbalk:** een zoekveld met import/export-knoppen, gevolgd door snelle tijdsfilters, een projectfilter en een QUICK.CAPTURE-balk voor snelle links/taken.
+- **Invoerkaarten:** aparte formulieren voor nieuwe links en taken, inclusief project- en prioriteitsvelden, plus een compacte FOCUS.TIMER en een NOTES.PAD onder de tasklist.
+- **Workspace:** drie hoofdpanelen — links per categorie, de tasklist (open/gedaan) met notes en daaronder de Gantt-planning met legend.
 - **Terminal en footer:** een commandoregel onderaan, plus statusinformatie in de footer.
 
 ## Publiceren naar GitHub

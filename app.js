@@ -97,6 +97,34 @@
       }
     }
 
+    // Compact daily indicator derived from current tasks/links (project-aware)
+    function updateTodaySummary() {
+      if (!todaySummaryEl) return;
+
+      const today = startOfDay(new Date());
+      const openTasks = tasks.filter((t) => !t.done && matchesProject(t));
+      const dueToday = openTasks.filter((t) => {
+        const end = t.endDate || t.dueDate;
+        if (!end) return false;
+        const d = new Date(end + "T00:00:00");
+        return !isNaN(d) && isSameDay(d, today);
+      });
+
+      const inboxLinks = links.filter((l) => {
+        const cat = (l.category || "").trim().toLowerCase();
+        return cat === "inbox" && matchesProject(l);
+      });
+
+      todaySummaryEl.textContent =
+        "Vandaag: " +
+        openTasks.length +
+        " open taken · " +
+        dueToday.length +
+        " taken met deadline vandaag · " +
+        inboxLinks.length +
+        " links in Inbox";
+    }
+
     function saveLinksToStorage() {
       try {
         localStorage.setItem(LINK_STORAGE_KEY, JSON.stringify(links));
@@ -239,8 +267,11 @@
     const categoriesRoot = document.getElementById("categoriesRoot");
     const linksCount = document.getElementById("linksCount");
     const searchInput = document.getElementById("searchInput");
+    const todaySummaryEl = document.getElementById("todaySummary");
     const projectFilterSelect = document.getElementById("projectFilterSelect");
     const projectSuggestions = document.getElementById("projectSuggestions");
+    const quickCaptureForm = document.getElementById("quickCaptureForm");
+    const quickCaptureInput = document.getElementById("quickCaptureInput");
 
     let currentQuickFilter = "all"; // all | inbox | today | week | category
     let currentCategoryFilterName = "";
@@ -350,6 +381,7 @@
       updateProjectFilterOptions();
       updateProjectSuggestions();
       updateFooterMeta();
+      updateTodaySummary();
     }
 
     let dragSourceId = null;
@@ -688,6 +720,63 @@
       });
     });
 
+    // QUICK.CAPTURE: route one-line input to link or task depending on URL shape
+    function looksLikeUrl(value) {
+      return /^(https?:\/\/|www\.)/i.test(value.trim());
+    }
+
+    function addQuickCaptureLink(raw) {
+      const normalizedUrl = normalizeUrl(raw);
+      const newLink = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        title: raw,
+        url: normalizedUrl,
+        category: "Inbox",
+        createdAt: new Date().toISOString(),
+        project: null,
+      };
+      links.push(newLink);
+      saveLinksToStorage();
+      touchLastModified();
+      categoryPulseName = "Inbox";
+      renderLinks();
+    }
+
+    function addQuickCaptureTask(raw) {
+      const newTask = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        title: raw,
+        done: false,
+        createdAt: new Date().toISOString(),
+        startDate: null,
+        endDate: null,
+        dueDate: null,
+        priority: null,
+        linkUrl: null,
+        project: null,
+      };
+      tasks.push(newTask);
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    if (quickCaptureForm) {
+      quickCaptureForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const raw = quickCaptureInput.value.trim();
+        if (!raw) return;
+
+        if (looksLikeUrl(raw)) {
+          addQuickCaptureLink(raw);
+        } else {
+          addQuickCaptureTask(raw);
+        }
+
+        quickCaptureForm.reset();
+        quickCaptureInput.focus();
+      });
+    }
+
     if (projectFilterSelect) {
       projectFilterSelect.addEventListener("change", () => {
         currentProjectFilter = projectFilterSelect.value.trim();
@@ -822,6 +911,7 @@
       updateProjectSuggestions();
 
       renderGantt();
+      updateTodaySummary();
     }
 
     function renderGantt() {
@@ -1199,6 +1289,79 @@
         taskForm.reset();
         taskTitleInput.focus();
       });
+    }
+
+    // FOCUS.TIMER: lightweight countdown widget near TASKLIST.APP
+    const focusTimerEl = document.getElementById("focusTimer");
+    const focusTimerDuration = document.getElementById("focusTimerDuration");
+    const focusTimerDisplay = document.getElementById("focusTimerDisplay");
+    const focusTimerToggle = document.getElementById("focusTimerToggle");
+    const focusTimerMessage = document.getElementById("focusTimerMessage");
+
+    let focusTimerInterval = null;
+    let focusRemainingSeconds = 0;
+
+    function formatFocusTime(seconds) {
+      const mins = Math.floor(seconds / 60)
+        .toString()
+        .padStart(2, "0");
+      const secs = Math.max(0, seconds % 60)
+        .toString()
+        .padStart(2, "0");
+      return mins + ":" + secs;
+    }
+
+    function renderFocusTimer() {
+      if (!focusTimerDisplay || !focusTimerToggle || !focusTimerEl) return;
+      focusTimerDisplay.textContent = formatFocusTime(focusRemainingSeconds);
+      focusTimerToggle.textContent = focusTimerInterval ? "Stop" : "Start";
+      focusTimerEl.classList.toggle("is-active", !!focusTimerInterval);
+      focusTimerEl.classList.toggle("is-finished", focusRemainingSeconds === 0);
+    }
+
+    function stopFocusTimer(completed = false) {
+      if (focusTimerInterval) {
+        clearInterval(focusTimerInterval);
+        focusTimerInterval = null;
+      }
+      if (focusTimerMessage) {
+        focusTimerMessage.textContent = completed
+          ? "Focusblok afgerond."
+          : "Timer gestopt.";
+      }
+      renderFocusTimer();
+    }
+
+    function tickFocusTimer() {
+      focusRemainingSeconds -= 1;
+      if (focusRemainingSeconds <= 0) {
+        focusRemainingSeconds = 0;
+        stopFocusTimer(true);
+        return;
+      }
+      renderFocusTimer();
+    }
+
+    function startFocusTimer() {
+      const minutes = parseInt(focusTimerDuration.value, 10) || 25;
+      focusRemainingSeconds = minutes * 60;
+      if (focusTimerInterval) clearInterval(focusTimerInterval);
+      focusTimerInterval = setInterval(tickFocusTimer, 1000);
+      if (focusTimerMessage) {
+        focusTimerMessage.textContent = "Bezig met focusblok...";
+      }
+      renderFocusTimer();
+    }
+
+    if (focusTimerToggle && focusTimerDuration) {
+      focusTimerToggle.addEventListener("click", () => {
+        if (focusTimerInterval) {
+          stopFocusTimer(false);
+        } else {
+          startFocusTimer();
+        }
+      });
+      renderFocusTimer();
     }
 
     // --- NOTES DATA -------------------------------------------------------
