@@ -18,309 +18,349 @@
       <div class="date-display" id="dateDisplay">
         datum wordt geladen…
       </div>
-      <div class="today-summary" id="todaySummary">Vandaag: — open taken · — due · — inbox links</div>
     </header>
 
-    <main>
-      <!-- Search -->
-      <section class="search-bar">
-        <div class="search-input-wrapper">
-          <span class="icon-search">🔍</span>
-          <input
-            type="text"
-            id="searchInput"
-            class="search-input"
-            placeholder="Zoek in links..."
-          />
-        </div>
-        <div class="search-actions">
-          <button id="exportBtn" class="btn-ghost" type="button">
-            <span class="btn-icon">⭳</span> Exporteren
-          </button>
-          <button id="importBtn" class="btn-ghost" type="button">
-            <span class="btn-icon">⭱</span> Importeren
-          </button>
-          <input
-            type="file"
-            id="importFile"
-            accept="application/json"
-            hidden
-          />
-        </div>
-      </section>
+<main>
+      <nav class="main-nav">
+        <button class="nav-tab active" data-target="view-dashboard">
+          DASHBOARD
+        </button>
+        <button class="nav-tab" data-target="view-engineering">
+          ENGINEERING
+        </button>
+        <button class="nav-tab" data-target="view-wiki" disabled>
+          WIKI (LOCKED)
+        </button>
+      </nav>
 
-      <!-- Quick filters -->
-      <section class="quick-filters">
-        <button type="button" class="chip active" data-filter="all">Alle</button>
-        <button type="button" class="chip" data-filter="inbox">Inbox</button>
-        <button type="button" class="chip" data-filter="today">Vandaag</button>
-        <button type="button" class="chip" data-filter="week">Deze week</button>
-      </section>
-
-      <!-- Project filter -->
-      <section class="project-filter">
-        <label for="projectFilterSelect" class="project-filter-label">
-          Projectfilter
-        </label>
-        <p class="project-filter-sub">Filtert links, taken, notes en planning.</p>
-        <select id="projectFilterSelect" class="project-filter-select">
-          <option value="">Alle projecten</option>
-        </select>
-      </section>
-
-      <!-- Quick capture bar -->
-      <section class="quick-capture" id="quickCaptureSection">
-        <div class="quick-capture-label">QUICK.CAPTURE</div>
-        <form id="quickCaptureForm" class="quick-capture-form" autocomplete="off">
-          <input
-            type="text"
-            id="quickCaptureInput"
-            class="input-field quick-capture-input"
-            placeholder="Snel iets kwijt? Typ hier…"
-          />
-          <button type="submit" class="btn-primary quick-capture-btn">Add</button>
-        </form>
-        <p class="quick-capture-hint">URLs worden als link opgeslagen, andere tekst als taak.</p>
-      </section>
-
-      <!-- New link -->
-      <section class="new-link-card" id="newLinkSection">
-        <div class="new-link-label">+ Nieuwe link toevoegen</div>
-        <form id="linkForm" class="link-form" autocomplete="off">
-          <input
-            id="titleInput"
-            class="input-field"
-            type="text"
-            placeholder="Titel"
-            required
-          />
-          <input
-            id="urlInput"
-            class="input-field"
-            type="url"
-            placeholder="URL"
-            required
-          />
-          <div>
-            <input
-              id="categoryInput"
-              class="input-field"
-              type="text"
-              placeholder="Categorie (optioneel)"
-              list="categorySuggestions"
-            />
-            <datalist id="categorySuggestions"></datalist>
+      <div id="view-dashboard" class="view-section active">
+        <section class="search-bar">
+          <div class="search-input-wrapper">
+            <span class="icon-search">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Zoek in links..." />
           </div>
-          <div>
-            <input
-              id="projectInput"
-              class="input-field"
-              type="text"
-              placeholder="Project (optioneel)"
-              list="projectSuggestions"
-            />
-            <datalist id="projectSuggestions"></datalist>
+          <div class="search-actions">
+            <button id="exportBtn" class="btn-ghost" type="button"><span class="btn-icon">⭳</span> Export</button>
+            <button id="importBtn" class="btn-ghost" type="button"><span class="btn-icon">⭱</span> Import</button>
+            <input type="file" id="importFile" accept="application/json" hidden />
           </div>
-          <button type="submit" class="btn-primary btn-add">
-            <span>+</span> Toevoegen
-          </button>
-        </form>
-      </section>
-
-      <!-- WORKSPACE: links + tasklist -->
-      <div class="workspace-top">
-        <!-- Links per categorie -->
-        <section class="links-panel">
-          <div id="emptyState" class="empty-state">
-            GEEN LINKS GEVONDEN
-            <small>Voeg je eerste link toe om te beginnen</small>
-          </div>
-
-          <div id="categoriesRoot" style="display:none;"></div>
         </section>
 
-        <div class="workspace-divider" aria-hidden="true"></div>
+        <section class="quick-filters">
+          <button type="button" class="chip active" data-filter="all">Alle</button>
+          <button type="button" class="chip" data-filter="inbox">Inbox</button>
+          <button type="button" class="chip" data-filter="today">Vandaag</button>
+          <button type="button" class="chip" data-filter="week">Deze week</button>
+        </section>
 
-        <div class="workspace-right">
-          <div class="focus-timer" id="focusTimer">
-            <div class="focus-timer-label">FOCUS.TIMER</div>
-            <div class="focus-timer-controls">
-              <select id="focusTimerDuration" class="input-field focus-timer-select">
-                <option value="25">25 min</option>
-                <option value="50">50 min</option>
-              </select>
-              <div class="focus-timer-display" id="focusTimerDisplay">00:00</div>
-              <button type="button" class="btn-ghost focus-timer-btn" id="focusTimerToggle">Start</button>
+        <section class="project-filter">
+          <label for="projectFilterSelect" class="project-filter-label">Projectfilter</label>
+          <select id="projectFilterSelect" class="project-filter-select">
+            <option value="">Alle projecten</option>
+          </select>
+        </section>
+
+        <section class="new-link-card" id="newLinkSection">
+          <div class="new-link-label">+ Nieuwe link toevoegen</div>
+          <form id="linkForm" class="link-form" autocomplete="off">
+            <input id="titleInput" class="input-field" type="text" placeholder="Titel" required />
+            <input id="urlInput" class="input-field" type="url" placeholder="URL" required />
+            <div>
+              <input id="categoryInput" class="input-field" type="text" placeholder="Categorie" list="categorySuggestions" />
+              <datalist id="categorySuggestions"></datalist>
             </div>
-            <div class="focus-timer-message" id="focusTimerMessage"></div>
-          </div>
+            <div>
+              <input id="projectInput" class="input-field" type="text" placeholder="Project" list="projectSuggestions" />
+              <datalist id="projectSuggestions"></datalist>
+            </div>
+            <button type="submit" class="btn-primary btn-add"><span>+</span> Toevoegen</button>
+          </form>
+        </section>
 
-          <!-- TASKLIST.APP -->
+        <div class="workspace-top">
+          <section class="links-panel">
+            <div id="emptyState" class="empty-state">GEEN LINKS GEVONDEN<small>Voeg je eerste link toe</small></div>
+            <div id="categoriesRoot" style="display:none;"></div>
+          </section>
+
+          <div class="workspace-divider" aria-hidden="true"></div>
+
           <section class="tasklist" id="tasklistSection">
             <div class="tasklist-header">
-              <div class="tasklist-label">
-                <span class="tasklist-icon" aria-hidden="true">☰</span>
-                TASKLIST.APP
-              </div>
+              <div class="tasklist-label"><span class="tasklist-icon">☰</span> TASKLIST.APP</div>
               <div class="tasklist-meta">
-                <span id="taskCountOpen">0 open</span>
-                <span>•</span>
-                <span id="taskCountDone">0 gedaan</span>
+                <span id="taskCountOpen">0 open</span> • <span id="taskCountDone">0 gedaan</span>
               </div>
             </div>
-
+            <div class="progress-bar-container"><div class="progress-bar-fill" id="taskProgressBar"></div></div><br>
+            
             <form id="taskForm" class="task-form" autocomplete="off">
-              <input
-                id="taskTitleInput"
-                class="input-field"
-                type="text"
-                placeholder="Taak..."
-                required
-              />
-              <input
-                id="taskStartInput"
-                class="input-field"
-                type="date"
-                placeholder="Startdatum"
-              />
-              <input
-                id="taskEndInput"
-                class="input-field"
-                type="date"
-                placeholder="Einddatum"
-              />
+              <input id="taskTitleInput" class="input-field" type="text" placeholder="Taak..." required />
+              <input id="taskStartInput" class="input-field" type="date" />
+              <input id="taskEndInput" class="input-field" type="date" />
               <select id="taskPriorityInput" class="input-field">
-                <option value="">Prio</option>
-                <option value="high">Hoog</option>
-                <option value="normal">Normaal</option>
-                <option value="low">Laag</option>
+                <option value="">Prio</option><option value="high">Hoog</option><option value="normal">Normaal</option><option value="low">Laag</option>
               </select>
-              <input
-                id="taskProjectInput"
-                class="input-field"
-                type="text"
-                placeholder="Project (optioneel)"
-                list="projectSuggestions"
-              />
-              <input
-                id="taskLinkInput"
-                class="input-field"
-                type="url"
-                placeholder="URL (optioneel)"
-              />
-              <button type="submit" class="btn-primary task-add-btn">
-                + Taak
-              </button>
+              <input id="taskProjectInput" class="input-field" type="text" placeholder="Project" list="projectSuggestions" />
+              <input id="taskLinkInput" class="input-field" type="url" placeholder="URL" list="linkSuggestions" />
+              <datalist id="linkSuggestions"></datalist>
+              <button type="submit" class="btn-primary task-add-btn">+ Taak</button>
             </form>
 
             <div class="task-columns">
-              <div class="task-column">
-                <div class="task-column-title">Open</div>
-                <div id="taskListOpen" class="task-list"></div>
-              </div>
-              <div class="task-column">
-                <div class="task-column-title">Gedaan</div>
-                <div id="taskListDone" class="task-list"></div>
-              </div>
+              <div class="task-column"><div class="task-column-title">Open</div><div id="taskListOpen" class="task-list"></div></div>
+              <div class="task-column"><div class="task-column-title">Gedaan</div><div id="taskListDone" class="task-list"></div></div>
             </div>
-          </section>
-
-          <!-- NOTES -->
-          <section class="notes" id="notesSection">
-            <div class="notes-header">
-              <div class="notes-label">NOTES.PAD</div>
-            </div>
-
-            <form id="noteForm" class="note-form" autocomplete="off">
-              <textarea
-                id="noteTextInput"
-                class="input-field note-textarea"
-                placeholder="Notitie..."
-                rows="2"
-              ></textarea>
-              <div class="note-form-row">
-                <input
-                  id="noteProjectInput"
-                  class="input-field"
-                  type="text"
-                  placeholder="Project (optioneel)"
-                  list="projectSuggestions"
-                />
-                <button type="submit" class="btn-primary note-add-btn">
-                  + Note
-                </button>
-              </div>
-            </form>
-
-            <div id="notesList" class="notes-list"></div>
           </section>
         </div>
+
+        <section class="gantt-panel" id="ganttPanel">
+          <div class="gantt-header">
+            <div><div class="gantt-label" id="ganttLabel">GANTT.PLANNING</div><div class="gantt-sub" id="ganttRangeLabel">Berekening bezig…</div></div>
+            <div class="gantt-legend">
+              <span class="legend-bullet priority-high"></span> Hoog
+              <span class="legend-bullet priority-normal"></span> Normaal
+              <span class="legend-bullet priority-low"></span> Laag
+            </div>
+          </div>
+          <div class="gantt-body">
+            <div class="gantt-track" id="ganttTrack">
+              <div class="gantt-track-inner"><div class="gantt-grid" id="ganttGrid"></div><div class="gantt-bars" id="ganttBars"></div></div>
+            </div>
+            <div class="gantt-empty" id="ganttEmpty">Voeg vervaldatums toe aan open taken om een planning te zien.</div>
+          </div>
+        </section>
+
+        <section class="terminal is-collapsed" id="terminalSection">
+          <div class="terminal-header">
+            <button type="button" class="terminal-toggle" id="terminalToggle" aria-expanded="false">▸</button>
+            <div class="terminal-title">WORK.TERMINAL</div>
+          </div>
+          <div class="terminal-content" id="terminalContent">
+            <div class="terminal-output" id="terminalOutput"><div class="terminal-line">type <span class="cmd">help</span> voor commando's.</div></div>
+            <div class="terminal-input-line">
+              <span class="prompt-label">&gt;</span>
+              <input id="terminalInput" class="terminal-input" type="text" autocomplete="off" placeholder="command..." />
+            </div>
+          </div>
+        </section>
       </div>
 
-      <!-- GANTT planning gekoppeld aan taken -->
-      <section class="gantt-panel" id="ganttPanel">
-        <div class="gantt-header">
-          <div>
-            <div class="gantt-label" id="ganttLabel">GANTT.PLANNING</div>
-            <div class="gantt-sub" id="ganttRangeLabel">Berekening bezig…</div>
-          </div>
-          <div class="gantt-legend">
-            <span class="legend-bullet priority-high"></span> Hoog
-            <span class="legend-bullet priority-normal"></span> Normaal
-            <span class="legend-bullet priority-low"></span> Laag
-          </div>
+   <div id="view-engineering" class="view-section">
+        
+        <div class="eng-sub-nav">
+          <button class="sub-tab active" data-sub="eng-elec">⚡ ELEKTRISCH</button>
+          <button class="sub-tab" data-sub="eng-mech">⚙️ MECHANISCH</button>
+          <button class="sub-tab" data-sub="eng-therm">🔥 THERM/VIB</button>
+          <button class="sub-tab" data-sub="eng-fluid">💧 FLUID/VAC</button>
         </div>
-        <div class="gantt-body">
-          <div class="gantt-track" id="ganttTrack">
-            <div class="gantt-track-inner">
-              <div class="gantt-grid" id="ganttGrid"></div>
-              <div class="gantt-bars" id="ganttBars"></div>
-            </div>
-          </div>
-          <div class="gantt-empty" id="ganttEmpty">
-            Voeg vervaldatums toe aan open taken om een planning te zien.
-          </div>
-        </div>
-      </section>
 
-      <!-- Terminal -->
-      <section class="terminal is-collapsed" id="terminalSection">
-        <div class="terminal-header">
-          <button type="button" class="terminal-toggle" id="terminalToggle" aria-expanded="false" aria-controls="terminalContent">
-            ▸
-          </button>
-          <div class="terminal-title">WORK.TERMINAL</div>
-        </div>
-        <div class="terminal-content" id="terminalContent">
-          <div class="terminal-output" id="terminalOutput">
-            <div class="terminal-line">
-              type <span class="cmd">help</span> voor link-commando's,
-              <span class="cmd">t-help</span> voor taken.
+        <div id="eng-elec" class="eng-sub-view active">
+          <div class="eng-grid">
+            
+            <div class="eng-card">
+              <div class="eng-header">📉 SPANNINGSVAL (VOLTAGE DROP)</div>
+              <div class="eng-body">
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Spanning (V)</label><input type="number" id="edV" class="input-field" value="24"></div>
+                  <div class="eng-row"><label>Stroom (A)</label><input type="number" id="edI" class="input-field" value="5"></div>
+                </div>
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Lengte (m)</label><input type="number" id="edL" class="input-field" value="10"></div>
+                  <div class="eng-row"><label>Doorsnede (mm²)</label><input type="number" id="edA" class="input-field" value="1.5"></div>
+                </div>
+                <div class="eng-row">
+                  <label>Materiaal</label>
+                  <select id="edMat" class="input-field">
+                    <option value="0.0175">Koper (Cu)</option>
+                    <option value="0.028">Aluminium (Al)</option>
+                  </select>
+                </div>
+                <div class="eng-result-box">
+                  <div>Drop: <span id="resVDrop" class="highlight">0.00</span> V</div>
+                  <div>Percentage: <span id="resVProc" class="highlight">0.00</span> %</div>
+                  <div style="font-size: 10px; color: #666; margin-top:5px;">(2x lengte gerekend voor DC retour)</div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="terminal-input-line">
-            <span class="prompt-label">&gt;</span>
-            <input
-              id="terminalInput"
-              class="terminal-input"
-              type="text"
-              autocomplete="off"
-              placeholder="command..."
-            />
+
+            <div class="eng-card">
+              <div class="eng-header">🔄 AWG ↔ MM² CONVERTER</div>
+              <div class="eng-body">
+                <div class="eng-row">
+                  <label>AWG Waarde</label>
+                  <input type="number" id="inputAWG" class="input-field" placeholder="bijv. 24" />
+                </div>
+                <div class="eng-result-box">
+                  <div>Diameter: <span id="resDiameter" class="highlight">-</span> mm</div>
+                  <div>Area: <span id="resArea" class="highlight">-</span> mm²</div>
+                </div>
+              </div>
+            </div>
+
+             <div class="eng-card">
+              <div class="eng-header">⚡ PE & KORTSLUIT SCHATTING</div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Kabellengte naar last (m)</label><input type="number" id="scL" class="input-field" value="20"></div>
+                <div class="eng-row"><label>Kabeldoorsnede (mm²)</label><input type="number" id="scA" class="input-field" value="2.5"></div>
+                <div class="eng-row"><label>Netspanning (V)</label><input type="number" id="scV" class="input-field" value="230"></div>
+                <div class="eng-result-box">
+                  <div>R_kabel (heen+terug): <span id="resRcable">-</span> Ω</div>
+                  <div>I_kortsluit (geschat): <span id="resIsc" class="highlight">-</span> A</div>
+                  <div style="font-size: 10px; color: #666; margin-top:5px;">*Excl. trafo impedantie, puur kabelweerstand</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-      </section>
+
+        <div id="eng-mech" class="eng-sub-view">
+          <div class="eng-grid">
+            
+            <div class="eng-card">
+              <div class="eng-header">🔧 BOUT CALCULATOR (VDI-ISH)</div>
+              <div class="eng-body">
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Maat (M)</label>
+                    <select id="bcM" class="input-field">
+                      <option value="4">M4</option><option value="5">M5</option><option value="6">M6</option>
+                      <option value="8">M8</option><option value="10">M10</option><option value="12">M12</option>
+                      <option value="16">M16</option><option value="20">M20</option>
+                    </select>
+                  </div>
+                  <div class="eng-row"><label>Klasse</label>
+                    <select id="bcClass" class="input-field">
+                      <option value="4.6">4.6</option><option value="8.8" selected>8.8</option>
+                      <option value="10.9">10.9</option><option value="12.9">12.9</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="eng-row">
+                  <label>Wrijvingscoëfficiënt (µ)</label>
+                  <input type="number" id="bcMu" class="input-field" value="0.14" step="0.01">
+                  <small style="color:#666; font-size:10px;">0.14 = licht geolied / 0.10 = wax / 0.20 = droog</small>
+                </div>
+                <div class="eng-result-box">
+                  <div>Voorspankracht (Fp): <span id="resFp" class="highlight">0</span> kN</div>
+                  <div>Aanhaalmoment (Ma): <span id="resMa" class="highlight">0</span> Nm</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="eng-card">
+              <div class="eng-header">⚙️ LAGER LEVENSDUUR (L10)</div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Dynamisch Draaggetal C (kN)</label><input type="number" id="bearC" class="input-field" placeholder="Uit datasheet"></div>
+                <div class="eng-row"><label>Equivalente Belasting P (kN)</label><input type="number" id="bearP" class="input-field" placeholder="Radial + Axial factor"></div>
+                <div class="eng-row"><label>Toerental (RPM)</label><input type="number" id="bearN" class="input-field" value="1500"></div>
+                <div class="eng-result-box">
+                  <div>Levensduur (Uur): <span id="resL10h" class="highlight">-</span> h</div>
+                  <div>Levensduur (Omw.): <span id="resL10" class="highlight">-</span> M-rev</div>
+                </div>
+              </div>
+            </div>
+
+             <div class="eng-card">
+              <div class="eng-header">🗝️ SPIEVERBINDING CHECK</div>
+              <div class="eng-body">
+                <div class="eng-row"><label>As diameter (mm)</label><input type="number" id="keyD" class="input-field" value="30"></div>
+                <div class="eng-row"><label>Koppel (Nm)</label><input type="number" id="keyT" class="input-field" value="100"></div>
+                <div class="eng-row"><label>Spie Hoogte h (mm)</label><input type="number" id="keyH" class="input-field" value="8"></div>
+                <div class="eng-row"><label>Spie Lengte L (mm)</label><input type="number" id="keyL" class="input-field" value="40"></div>
+                <div class="eng-result-box">
+                  <div>Oppervlaktedruk: <span id="resKeyP" class="highlight">-</span> MPa</div>
+                  <div>Toelaatbaar (Staal): ~90-120 MPa</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="eng-therm" class="eng-sub-view">
+          <div class="eng-grid">
+            
+            <div class="eng-card">
+              <div class="eng-header">🔥 HEATSINK / JUNCTION TEMP</div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Vermogen Dissipatie (W)</label><input type="number" id="thP" class="input-field" value="10"></div>
+                <div class="eng-row"><label>R_th Junction-Case (°C/W)</label><input type="number" id="thRjc" class="input-field" value="1.5"></div>
+                <div class="eng-row"><label>R_th Heatsink-Amb (°C/W)</label><input type="number" id="thRha" class="input-field" value="4.0"></div>
+                <div class="eng-row"><label>Omgevingstemp (°C)</label><input type="number" id="thTa" class="input-field" value="25"></div>
+                <div class="eng-result-box">
+                  <div>Junction Temp (Tj): <span id="resTj" class="highlight">-</span> °C</div>
+                  <div>Max aanbevolen: < 125 °C</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="eng-card">
+              <div class="eng-header">〰️ EIGENFREQUENTIE (Fn)</div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Massa (kg)</label><input type="number" id="vibM" class="input-field" value="10"></div>
+                <div class="eng-row"><label>Stijfheid k (N/mm)</label><input type="number" id="vibK" class="input-field" value="100"></div>
+                <div class="eng-result-box">
+                  <div>Frequentie: <span id="resFn" class="highlight">-</span> Hz</div>
+                  <small style="color:#666">Check of dit in de buurt van 50Hz zit!</small>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="eng-fluid" class="eng-sub-view">
+          <div class="eng-grid">
+            
+            <div class="eng-card">
+              <div class="eng-header">💧 FLOW SNELHEID</div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Flow Rate (L/min)</label><input type="number" id="flQ" class="input-field" value="10"></div>
+                <div class="eng-row"><label>Buis Binnendiameter (mm)</label><input type="number" id="flD" class="input-field" value="8"></div>
+                <div class="eng-result-box">
+                  <div>Snelheid: <span id="resVelo" class="highlight">-</span> m/s</div>
+                  <div>Advies: Water < 2-3 m/s, Olie < 1 m/s</div>
+                </div>
+              </div>
+            </div>
+
+             <div class="eng-card">
+              <div class="eng-header">🔄 UNIT CONVERTER</div>
+              <div class="eng-body">
+                <div class="eng-row">
+                  <select id="convType" class="input-field">
+                    <option value="pressure">Druk (Bar ↔ PSI)</option>
+                    <option value="length">Lengte (mm ↔ inch)</option>
+                    <option value="torque">Koppel (Nm ↔ ft-lb)</option>
+                    <option value="flow">Flow (L/min ↔ GPM)</option>
+                  </select>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <input type="number" id="convInput" class="input-field" value="1">
+                  <span style="color:var(--accent)">=</span>
+                  <input type="number" id="convOutput" class="input-field" readonly>
+                </div>
+                <div style="margin-top:5px; font-size:11px; text-align:center; color:#666;">
+                  <span id="labelInput">Bar</span> → <span id="labelOutput">PSI</span>
+                </div>
+                <button id="convSwapBtn" class="btn-ghost" style="width:100%; margin-top:10px;">⇅ Wissel</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
     </main>
-
     <footer>
-      WORK.LINKS v1.2 //
+      WORK.LINKS v1.3 //
       <span class="count" id="linksCount">0</span> LINKS //
       <span class="count" id="categoriesCount">0</span> CATEGORIEËN //
       LAATST: <span id="lastModifiedDisplay">-</span>
     </footer>
   </div>
 
-  <!-- Floating add button (mobiel) -->
   <button type="button" class="fab" id="fabAdd">
     <span>＋</span>Link
   </button>
