@@ -715,6 +715,7 @@ if (projectFilterSelect) {
     currentProjectFilter = projectFilterSelect.value.trim();
     renderLinks();
     renderTasks();
+    syncProjectDefaults();
   });
 }
 
@@ -756,6 +757,22 @@ const ganttTrack = document.getElementById("ganttTrack");
 const ganttEmpty = document.getElementById("ganttEmpty");
 const ganttRangeLabel = document.getElementById("ganttRangeLabel");
 const ganttLabel = document.getElementById("ganttLabel");
+const engTaskForm = document.getElementById('engTaskForm');
+const engTaskTitle = document.getElementById('engTaskTitle');
+const engTaskLink = document.getElementById('engTaskLink');
+const engTaskProject = document.getElementById('engTaskProject');
+const engTaskDefaults = () => {
+  if (engTaskProject && currentProjectFilter && !engTaskProject.value) {
+    engTaskProject.value = currentProjectFilter;
+  }
+  if (taskProjectInput && currentProjectFilter && !taskProjectInput.value) {
+    taskProjectInput.value = currentProjectFilter;
+  }
+};
+
+function syncProjectDefaults() {
+  engTaskDefaults();
+}
 
 const GANTT_WINDOW_DAYS = 21;
 const GANTT_DAY_WIDTH = 70;
@@ -849,6 +866,7 @@ function renderTasks() {
   updateProjectSuggestions();
 
   renderGantt();
+  engTaskDefaults();
 }
 
 function renderGantt() {
@@ -1226,6 +1244,36 @@ if (taskForm) {
 
     taskForm.reset();
     taskTitleInput.focus();
+  });
+}
+
+if (engTaskForm) {
+  engTaskForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = engTaskTitle ? engTaskTitle.value.trim() : '';
+    const projectName = normalizeProject((engTaskProject && engTaskProject.value) || currentProjectFilter);
+    const linkRaw = engTaskLink ? engTaskLink.value.trim() : '';
+
+    if (!title) return;
+
+    const newTask = {
+      id: generateId(),
+      title,
+      done: false,
+      createdAt: new Date().toISOString(),
+      startDate: null,
+      endDate: null,
+      dueDate: null,
+      priority: null,
+      linkUrl: linkRaw ? normalizeUrl(linkRaw) : null,
+      project: projectName || null,
+    };
+
+    tasks.push(newTask);
+    saveTasksToStorage();
+    renderTasks();
+    if (engTaskForm) engTaskForm.reset();
+    engTaskDefaults();
   });
 }
 
@@ -1932,71 +1980,89 @@ navTabs.forEach(tab => {
 
 // 1. AWG Calculator
 const inputAWG = document.getElementById('inputAWG');
+const inputAreaMM2 = document.getElementById('inputAreaMM2');
 const resDiameter = document.getElementById('resDiameter');
 const resArea = document.getElementById('resArea');
+const resAwgFromArea = document.getElementById('resAwgFromArea');
 
-if(inputAWG) {
+function setStatusPill(el, tone, text) {
+  if (!el) return;
+  el.textContent = text || '-';
+  el.classList.remove('status-good', 'status-warn', 'status-bad');
+  if (tone) el.classList.add(tone);
+}
+
+function awgToDiameter(awg) {
+  return 0.127 * Math.pow(92, (36 - awg) / 39);
+}
+
+function diameterToAwg(diameter) {
+  if (diameter <= 0) return NaN;
+  return 36 - (39 * Math.log(diameter / 0.127)) / Math.log(92);
+}
+
+function areaToDiameter(area) {
+  if (area <= 0) return NaN;
+  return 2 * Math.sqrt(area / Math.PI);
+}
+
+function updateAwgOutputs(diameter, area) {
+  if (resDiameter) resDiameter.textContent = isNaN(diameter) ? "-" : diameter.toFixed(4);
+  if (resArea) resArea.textContent = isNaN(area) ? "-" : area.toFixed(4);
+}
+
+function updateAwgFromAreaDisplay(awg) {
+  if (resAwgFromArea) resAwgFromArea.textContent = isNaN(awg) ? "-" : awg.toFixed(2);
+}
+
+let isUpdatingFromAwg = false;
+let isUpdatingFromArea = false;
+
+if (inputAWG) {
   inputAWG.addEventListener('input', () => {
+    if (isUpdatingFromArea) return; // voorkom lus bij synchroon bijwerken
     const awg = parseFloat(inputAWG.value);
-    if(isNaN(awg)) {
-      resDiameter.textContent = "0.00";
-      resArea.textContent = "0.00";
+    if (isNaN(awg)) {
+      updateAwgOutputs(NaN, NaN);
+      updateAwgFromAreaDisplay(NaN);
+      if (inputAreaMM2) inputAreaMM2.value = "";
       return;
     }
-    // Formule: D(mm) = 0.127 * 92^((36-AWG)/39)
-    const diameter = 0.127 * Math.pow(92, (36 - awg) / 39);
+
+    const diameter = awgToDiameter(awg);
     const area = Math.PI * Math.pow(diameter / 2, 2);
 
-    resDiameter.textContent = diameter.toFixed(4);
-    resArea.textContent = area.toFixed(4);
+    isUpdatingFromAwg = true;
+    updateAwgOutputs(diameter, area);
+    updateAwgFromAreaDisplay(awg);
+    if (inputAreaMM2) inputAreaMM2.value = area.toFixed(4);
+    isUpdatingFromAwg = false;
   });
 }
 
-// 2. Bolt Calculator
-const inputBoltSize = document.getElementById('inputBoltSize');
-const inputBoltClass = document.getElementById('inputBoltClass');
-const resPreload = document.getElementById('resPreload');
-const resTorque = document.getElementById('resTorque');
+if (inputAreaMM2) {
+  inputAreaMM2.addEventListener('input', () => {
+    if (isUpdatingFromAwg) return;
+    const area = parseFloat(inputAreaMM2.value);
+    if (isNaN(area) || area <= 0) {
+      updateAwgFromAreaDisplay(NaN);
+      if (resDiameter) resDiameter.textContent = "-";
+      if (resArea) resArea.textContent = "-";
+      return;
+    }
 
-function calculateBolt() {
-  if(!inputBoltSize || !inputBoltClass) return;
+    const diameter = areaToDiameter(area);
+    const awg = diameterToAwg(diameter);
 
-  const d = parseInt(inputBoltSize.value); // Diameter in mm
-  const propClass = parseFloat(inputBoltClass.value); // e.g. 8.8
-  
-  // Schatting Stress Area (As) - simpele benadering voor standaard grof draad
-  // As ≈ 0.7854 * (d - 0.9382 * pitch)^2
-  // We gebruiken hier een versimpelde lookup voor standaard spoed
-  const pitchMap = {3:0.5, 4:0.7, 5:0.8, 6:1.0, 8:1.25, 10:1.5, 12:1.75, 16:2.0, 20:2.5};
-  const p = pitchMap[d] || 1.0;
-  
-  const As = 0.7854 * Math.pow(d - 0.9382 * p, 2);
-  
-  // Yield Strength (Rp0.2) berekenen uit property class (bijv 8.8 -> 800 * 0.8 = 640)
-  const ultimateStrength = Math.floor(propClass) * 100; // Eerste cijfer * 100
-  const yieldRatio = (propClass - Math.floor(propClass)) * 10; // Cijfer achter punt
-  const yieldStrength = ultimateStrength * (yieldRatio / 10);
-  
-  // Preload Force (Fp) ≈ 0.9 * Rp0.2 * As (vaak 90% van yield bij torque method)
-  // Let op: dit is een schatting voor algemene constructies
-  const Fp_Newton = 0.9 * yieldStrength * As;
-  const Fp_kN = Fp_Newton / 1000;
-  
-  // Torque (Ma) ≈ 0.14 * d * Fp (bij wrijving 0.14) (Kellermann & Klein formule simplificatie)
-  // Ma = Fp * (0.16 * P + 0.58 * d2 * mu_G + 0.5 * Dkm * mu_K) -> Versimpeld: 0.2 * Fp * d (droog) of 0.14 (gesmeerd)
-  const K = 0.14; // Aanname: licht geolied / standaard
-  const Torque_Nm = (K * d * Fp_Newton) / 1000;
-
-  resPreload.textContent = Fp_kN.toFixed(1);
-  resTorque.textContent = Torque_Nm.toFixed(1);
+    isUpdatingFromArea = true;
+    updateAwgOutputs(diameter, area);
+    updateAwgFromAreaDisplay(awg);
+    if (inputAWG) inputAWG.value = awg.toFixed(2);
+    isUpdatingFromArea = false;
+  });
 }
 
-if(inputBoltSize && inputBoltClass) {
-  inputBoltSize.addEventListener('change', calculateBolt);
-  inputBoltClass.addEventListener('change', calculateBolt);
-  // Initial run
-  calculateBolt(); 
-}// --- ENGINEERING SUB-NAVIGATION ---------------------------------------
+  // --- ENGINEERING SUB-NAVIGATION ---------------------------------------
 const subTabs = document.querySelectorAll('.sub-tab');
 const subViews = document.querySelectorAll('.eng-sub-view');
 
@@ -2020,11 +2086,25 @@ subTabs.forEach(tab => {
 // --- CALCULATORS ------------------------------------------------------
 
 // 1. ELEK: Voltage Drop & Kortsluiting
-const inputsElec = ['edV','edI','edL','edA','edMat','scL','scA','scV'];
+const inputsElec = ['edV','edI','edL','edA','edMat','scL','scA','scV','ohmSolve','ohmV','ohmI','ohmR','rcMode','rcR1','rcR2','rcR3','csI','csL','csV','csDrop','csLayout','csSystem','dcV','dcI','dcPsu'];
 inputsElec.forEach(id => {
   const el = document.getElementById(id);
   if(el) el.addEventListener('input', calcElec);
 });
+
+const ohmSolveSelect = document.getElementById('ohmSolve');
+const ohmInputs = {
+  voltage: document.getElementById('ohmV'),
+  current: document.getElementById('ohmI'),
+  resistance: document.getElementById('ohmR')
+};
+
+if(ohmSolveSelect) {
+  ohmSolveSelect.addEventListener('change', () => {
+    updateOhmInputs();
+    calcElec();
+  });
+}
 
 function calcElec() {
   // Voltage Drop
@@ -2051,13 +2131,145 @@ function calcElec() {
   // R = (2 * L * 0.0175) / A (koper aanname)
   const R_cable = (2 * scL * 0.0175) / scA;
   const I_sc = scV / R_cable;
-  
+
   document.getElementById('resRcable').textContent = R_cable.toFixed(3);
   document.getElementById('resIsc').textContent = I_sc.toFixed(0);
+
+  // Cable sizing & derating
+  const csI = parseFloat(document.getElementById('csI')?.value);
+  const csL = parseFloat(document.getElementById('csL')?.value);
+  const csV = parseFloat(document.getElementById('csV')?.value);
+  const csDrop = parseFloat(document.getElementById('csDrop')?.value) || 5;
+  const csLayout = document.getElementById('csLayout')?.value || 'single';
+  const csSystem = document.getElementById('csSystem')?.value || 'dc';
+
+  const layoutData = {
+    single: { j: 6, derate: 1.0 },
+    bundel: { j: 4.5, derate: 0.9 },
+    goot: { j: 4.0, derate: 0.85 },
+    buis: { j: 3.5, derate: 0.8 },
+  };
+  const selectedLayout = layoutData[csLayout] || layoutData.single;
+  const systemFactor = csSystem === 'ac' ? 0.95 : 1.0;
+  const allowableJ = selectedLayout.j * selectedLayout.derate * systemFactor;
+  const rhoCu = 0.0175;
+  const dropLimit = Math.max(csDrop || 0, 0.5);
+  const pickSize = (req) => {
+    const options = [0.5,0.75,1,1.5,2.5,4,6,10,16,25,35,50,70,95,120];
+    return options.find((a) => a >= req) || req;
+  };
+
+  const areaByJ = allowableJ > 0 && csI ? csI / allowableJ : NaN;
+  const areaByDrop = csV ? (2 * (csL || 0) * (csI || 0) * rhoCu) / (csV * (dropLimit / 100)) : NaN;
+  const requiredArea = Math.max(areaByJ || 0, areaByDrop || 0.0);
+  const chosenArea = pickSize(requiredArea || 0.0);
+  const actualVDrop = csV ? ((2 * (csL || 0) * (csI || 0) * rhoCu) / chosenArea / csV) * 100 : NaN;
+  const actualJ = chosenArea ? (csI || 0) / chosenArea : NaN;
+
+  const resAreaEl = document.getElementById('resCableArea');
+  const resDropEl = document.getElementById('resCableDrop');
+  const resJEl = document.getElementById('resCableJ');
+  const resStatusEl = document.getElementById('resCableStatus');
+
+  if (resAreaEl) resAreaEl.textContent = isFinite(chosenArea) && chosenArea > 0 ? chosenArea.toFixed(2) : '-';
+  if (resDropEl) resDropEl.textContent = isFinite(actualVDrop) ? actualVDrop.toFixed(2) : '-';
+  if (resJEl) resJEl.textContent = isFinite(actualJ) ? actualJ.toFixed(2) : '-';
+
+  const dropRatio = dropLimit > 0 ? (actualVDrop || 0) / dropLimit : 0;
+  const jRatio = allowableJ > 0 ? (actualJ || 0) / allowableJ : 0;
+  const worst = Math.max(dropRatio, jRatio);
+  let tone = 'status-good';
+  if (worst >= 1.0) tone = 'status-bad'; else if (worst >= 0.85) tone = 'status-warn';
+  const statusText = `Derating ${allowableJ.toFixed(1)} A/mm² · drop ${isFinite(actualVDrop) ? actualVDrop.toFixed(2) : '-'}%`;
+  setStatusPill(resStatusEl, tone, statusText);
+
+  // DC helper
+  const dcV = parseFloat(document.getElementById('dcV')?.value);
+  const dcI = parseFloat(document.getElementById('dcI')?.value);
+  const dcPsu = parseFloat(document.getElementById('dcPsu')?.value);
+  const resDcP = document.getElementById('resDcP');
+  const resDcPct = document.getElementById('resDcPct');
+  const resDcStatus = document.getElementById('resDcStatus');
+
+  const power = (dcV || 0) * (dcI || 0);
+  const pct = dcPsu ? (power / dcPsu) * 100 : NaN;
+  if (resDcP) resDcP.textContent = power.toFixed(2);
+  if (resDcPct) resDcPct.textContent = isFinite(pct) ? pct.toFixed(1) + '%' : '-';
+  if (resDcStatus) {
+    let toneDc = 'status-good';
+    if (pct >= 90) toneDc = 'status-bad'; else if (pct >= 70) toneDc = 'status-warn';
+    setStatusPill(resDcStatus, toneDc, isFinite(pct) ? `PSU marge ${Math.max(0, 100 - pct).toFixed(0)}%` : 'Vul PSU in');
+  }
+
+  // Ohm's Law Solver
+  const solveTarget = ohmSolveSelect ? ohmSolveSelect.value : 'voltage';
+  const vInput = ohmInputs.voltage;
+  const iInput = ohmInputs.current;
+  const rInput = ohmInputs.resistance;
+
+  const V_ohm = vInput ? parseFloat(vInput.value) : NaN;
+  const I_ohm = iInput ? parseFloat(iInput.value) : NaN;
+  const R_ohm = rInput ? parseFloat(rInput.value) : NaN;
+
+  let ohmResult = null;
+  let ohmUnit = 'V';
+
+  if(solveTarget === 'voltage' && !isNaN(I_ohm) && !isNaN(R_ohm)) {
+    ohmResult = I_ohm * R_ohm;
+    ohmUnit = 'V';
+  } else if(solveTarget === 'current' && !isNaN(V_ohm) && !isNaN(R_ohm) && R_ohm !== 0) {
+    ohmResult = V_ohm / R_ohm;
+    ohmUnit = 'A';
+  } else if(solveTarget === 'resistance' && !isNaN(V_ohm) && !isNaN(I_ohm) && I_ohm !== 0) {
+    ohmResult = V_ohm / I_ohm;
+    ohmUnit = 'Ω';
+  }
+
+  const elOhm = document.getElementById('resOhmValue');
+  const elOhmUnit = document.getElementById('resOhmUnit');
+  if(elOhm) {
+    elOhm.textContent = (ohmResult !== null && isFinite(ohmResult)) ? ohmResult.toFixed(2) : '-';
+  }
+  if(elOhmUnit) elOhmUnit.textContent = ohmUnit;
+
+  // Resistor Combiner
+  const mode = document.getElementById('rcMode');
+  const r1 = parseFloat(document.getElementById('rcR1')?.value);
+  const r2 = parseFloat(document.getElementById('rcR2')?.value);
+  const r3 = parseFloat(document.getElementById('rcR3')?.value);
+
+  const resistors = [r1, r2, r3].filter(v => !isNaN(v));
+  const elReq = document.getElementById('resReq');
+
+  if(mode && elReq && resistors.length >= 2) {
+    let req = 0;
+    if(mode.value === 'series') {
+      req = resistors.reduce((sum, val) => sum + val, 0);
+    } else {
+      const invSum = resistors.reduce((sum, val) => sum + (1/val), 0);
+      req = 1 / invSum;
+    }
+    elReq.textContent = isFinite(req) ? req.toFixed(2) : '-';
+  } else if(elReq) {
+    elReq.textContent = '-';
+  }
 }
 
+function updateOhmInputs() {
+  if(!ohmSolveSelect) return;
+  const target = ohmSolveSelect.value;
+  Object.entries(ohmInputs).forEach(([key, input]) => {
+    if(!input) return;
+    const isDisabled = key === target;
+    input.disabled = isDisabled;
+    input.classList.toggle('input-disabled', isDisabled);
+  });
+}
+
+updateOhmInputs();
+
 // 2. MECH: Bolts & Bearings & Keys
-const inputsMech = ['bcM','bcClass','bcMu','bearC','bearP','bearN','keyD','keyT','keyH','keyL'];
+const inputsMech = ['bcM','bcClass','bcMu','bearC','bearP','bearN','keyD','keyT','keyH','keyL','bcExt','bcExtType','bcCount','bcMuSlip'];
 inputsMech.forEach(id => {
   const el = document.getElementById(id);
   if(el) el.addEventListener('input', calcMech);
@@ -2082,6 +2294,31 @@ function calcMech() {
 
   document.getElementById('resFp').textContent = (Fp_N/1000).toFixed(1);
   document.getElementById('resMa').textContent = Torque_Nm.toFixed(1);
+
+  const extK = parseFloat(document.getElementById('bcExt')?.value) || 0;
+  const extType = document.getElementById('bcExtType')?.value || 'axial';
+  const boltCount = Math.max(1, parseInt(document.getElementById('bcCount')?.value) || 1);
+  const slipMu = parseFloat(document.getElementById('bcMuSlip')?.value) || mu;
+
+  const totalPreload = Fp_N * boltCount;
+  const extForceN = extK * 1000;
+  const utilization = totalPreload > 0 ? extForceN / totalPreload : 0;
+  const tangential = extType === 'shear' ? extForceN : 0;
+  const slipResist = slipMu * totalPreload;
+  const slipOk = tangential <= slipResist;
+
+  const resBoltUtil = document.getElementById('resBoltUtil');
+  const resBoltSlip = document.getElementById('resBoltSlip');
+  const resBoltStatus = document.getElementById('resBoltStatus');
+
+  if (resBoltUtil) resBoltUtil.textContent = totalPreload ? (utilization * 100).toFixed(1) + '%' : '-';
+  if (resBoltSlip) resBoltSlip.textContent = slipOk ? 'glijdt niet' : 'glijdt';
+
+  let toneBolt = 'status-good';
+  if (utilization >= 1 || !slipOk) toneBolt = 'status-bad';
+  else if (utilization >= 0.75) toneBolt = 'status-warn';
+  const utilText = `Benutting ${totalPreload ? (utilization * 100).toFixed(0) : '-'}% · μΣFv ${(slipResist/1000).toFixed(1)} kN`;
+  setStatusPill(resBoltStatus, toneBolt, utilText);
 
   // BEARING (L10)
   const C = parseFloat(document.getElementById('bearC').value);
@@ -2119,7 +2356,7 @@ function calcMech() {
 }
 
 // 3. THERM & FLUID
-const inputsPhys = ['thP','thRjc','thRha','thTa','vibM','vibK','flQ','flD'];
+const inputsPhys = ['thP','thRjc','thRha','thTa','vibM','vibK','flQ','flD','thMode','thTjMax','vibExc','flMedium'];
 inputsPhys.forEach(id => {
   const el = document.getElementById(id);
   if(el) el.addEventListener('input', calcPhys);
@@ -2131,28 +2368,73 @@ function calcPhys() {
   const Rjc = parseFloat(document.getElementById('thRjc').value) || 0;
   const Rha = parseFloat(document.getElementById('thRha').value) || 0;
   const Ta = parseFloat(document.getElementById('thTa').value) || 25;
+  const thMode = document.getElementById('thMode')?.value || 'tj';
+  const thTjMax = parseFloat(document.getElementById('thTjMax')?.value) || 125;
 
   const Tj = P * (Rjc + Rha) + Ta;
-  const elTj = document.getElementById('resTj');
-  elTj.textContent = Tj.toFixed(1);
-  elTj.style.color = Tj > 125 ? '#ff4f6b' : 'var(--accent)';
+  const resTjEl = document.getElementById('resTj');
+  const resRhaMaxEl = document.getElementById('resRhaMax');
+  const resThermStatus = document.getElementById('resThermStatus');
+
+  if (resTjEl) resTjEl.textContent = Tj.toFixed(1);
+
+  if (thMode === 'rha' && P > 0) {
+    const rhaAllow = ((thTjMax - Ta) / P) - Rjc;
+    if (resRhaMaxEl) resRhaMaxEl.textContent = rhaAllow > 0 ? rhaAllow.toFixed(2) : '0.00';
+    const tone = rhaAllow > 0 ? 'status-good' : 'status-bad';
+    const msg = rhaAllow > 0 ? `Heatsink nodig met Rha ≤ ${rhaAllow.toFixed(2)} °C/W` : 'Vul lager vermogen of lagere Tj in';
+    setStatusPill(resThermStatus, tone, msg);
+  } else {
+    const margin = thTjMax - Tj;
+    const tone = margin >= 20 ? 'status-good' : margin >= 0 ? 'status-warn' : 'status-bad';
+    const msg = `Margin ${margin.toFixed(1)}°C t.o.v. ${thTjMax}°C`;
+    setStatusPill(resThermStatus, tone, msg);
+    if (resRhaMaxEl) resRhaMaxEl.textContent = '-';
+  }
 
   // VIBRATION f = 1/2pi * sqrt(k*1000 / m)  (k in N/mm -> N/m is *1000)
   const m = parseFloat(document.getElementById('vibM').value);
   const k = parseFloat(document.getElementById('vibK').value);
+  const fExc = parseFloat(document.getElementById('vibExc')?.value);
   if(m && k) {
     const fn = (1 / (2 * Math.PI)) * Math.sqrt((k * 1000) / m);
     document.getElementById('resFn').textContent = fn.toFixed(1);
+    const resFnDelta = document.getElementById('resFnDelta');
+    const resVibStatus = document.getElementById('resVibStatus');
+    if (!isNaN(fExc) && resFnDelta) {
+      const diff = fn - fExc;
+      const pct = Math.abs(diff) / fn;
+      resFnDelta.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)} Hz (${(pct*100).toFixed(0)}%)`;
+      let tone = 'status-good';
+      if (pct < 0.1) tone = 'status-bad'; else if (pct < 0.2) tone = 'status-warn';
+      setStatusPill(resVibStatus, tone, pct < 0.1 ? 'Dicht bij resonantie' : pct < 0.2 ? 'In buurt van resonantie' : 'Veilig');
+    } else {
+      if (resFnDelta) resFnDelta.textContent = '-';
+      if (resVibStatus) setStatusPill(resVibStatus, null, 'Voer excitatie in voor check');
+    }
   }
 
   // FLUID VELOCITY v = Q / A.  Q(L/min) -> m3/s. A(mm2) -> m2
   const Q = parseFloat(document.getElementById('flQ').value);
   const D = parseFloat(document.getElementById('flD').value);
+  const medium = document.getElementById('flMedium')?.value || 'water';
   if(Q && D) {
-    const Q_m3s = Q / 60000; 
+    const Q_m3s = Q / 60000;
     const A_m2 = Math.PI * Math.pow((D/1000)/2, 2);
     const v = Q_m3s / A_m2;
     document.getElementById('resVelo').textContent = v.toFixed(2);
+
+    const kinNu = { water: 1e-6, lucht: 1.5e-5, olie: 8e-5 }[medium] || 1e-6;
+    const Re = v * (D/1000) / kinNu;
+    const resRe = document.getElementById('resRe');
+    const resReLabel = document.getElementById('resReLabel');
+    const resFlowStatus = document.getElementById('resFlowStatus');
+    const regime = Re < 2000 ? 'Laminar' : Re < 4000 ? 'Transition' : 'Turbulent';
+    if (resRe) resRe.textContent = isFinite(Re) ? Re.toFixed(0) : '-';
+    if (resReLabel) resReLabel.textContent = regime;
+    let tone = 'status-good';
+    if (regime === 'Transition') tone = 'status-warn'; else if (regime === 'Turbulent') tone = 'status-bad';
+    setStatusPill(resFlowStatus, tone, `${regime} flow`);
   }
 }
 
