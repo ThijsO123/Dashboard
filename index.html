@@ -172,7 +172,7 @@
           <div class="eng-grid">
             
             <div class="eng-card">
-              <div class="eng-header">📉 SPANNINGSVAL (VOLTAGE DROP) <span class="info-icon" data-tooltip="U_drop = (2·L·I·ρ)/A. Aannames: koper/aluminium, DC retour 2x lengte.">ℹ</span></div>
+              <div class="eng-header">📉 SPANNINGSVAL (VOLTAGE DROP) <span class="info-icon" data-tooltip="Formule: U_drop = (2·L·I·ρ)/A → % = (U_drop/U_source)·100. ρ: Cu 0.0175, Al 0.028 Ω·mm²/m. Bron: IEC 60364-5-52 benadering (alleen kabelweerstand, DC retour = 2×L).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Spanning (V)</label><input type="number" id="edV" class="input-field" value="24"></div>
@@ -198,7 +198,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">🪢 CABLE SIZING & DERATING <span class="info-icon" data-tooltip="Min. aderdoorsnede op basis van stroomdichtheid en spanningsval. Derating per legwijze + AC-correctie.">ℹ</span></div>
+              <div class="eng-header">🪢 CABLE SIZING & DERATING <span class="info-icon" data-tooltip="J = I/A. Spanningsval-check: U% = (2·L·I·ρ)/(A·U)·100. Derating: single=1.0, bundel=0.75, goot=0.8, buis=0.7; AC factor 0.95. Bron: IEC 60364-5-52/HD 60364 tabellen (vereenvoudigd).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Stroom (A)</label><input type="number" id="csI" class="input-field" value="12"></div>
@@ -234,7 +234,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">🔄 AWG ↔ MM² CONVERTER <span class="info-icon" data-tooltip="AWG → d = 0.127·92^{(36-AWG)/39}, A = π·(d/2)^2. Omgekeerd via ln." aria-label="AWG hulp">ℹ</span></div>
+              <div class="eng-header">🔄 AWG ↔ MM² CONVERTER <span class="info-icon" data-tooltip="ASTM B258: d(mm) = 0.127·92^{(36-AWG)/39}; A = π·(d/2)^2. AWG ↔ area via ln/exp zodat d, A en AWG synchroon blijven." aria-label="AWG hulp">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row">
                   <label>AWG Waarde</label>
@@ -254,7 +254,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">🔌 DC POWER HELPER <span class="info-icon" data-tooltip="P = U · I. PSU-belasting = P/P_Supply. Simpele check voor DC loads.">ℹ</span></div>
+              <div class="eng-header">🔌 DC POWER HELPER <span class="info-icon" data-tooltip="P = U·I (DC). PSU-load = (P_load/P_supply)·100%. Bron: basis vermogensleer, geen conversieverlies meegenomen.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Spanning (V)</label><input type="number" id="dcV" class="input-field" value="24"></div>
@@ -270,7 +270,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">📐 OHM'S LAW SOLVER <span class="info-icon" data-tooltip="V = I·R, I = V/R, R = V/I. Kies het onbekende veld en vul de andere twee in.">ℹ</span></div>
+              <div class="eng-header">📐 OHM'S LAW SOLVER <span class="info-icon" data-tooltip="Wet van Ohm: V = I·R. Oplossers: I = V/R, R = V/I. Kies onbekende en vul twee waarden. Bron: basis elektrotechniek (DC/kleine-signal AC).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Reken voor</label>
                   <select id="ohmSolve" class="input-field">
@@ -290,7 +290,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">🧮 WEERSTAND COMBINATOR <span class="info-icon" data-tooltip="Serie: R_tot = ΣR. Parallel: 1/R_tot = Σ(1/R_i).">ℹ</span></div>
+              <div class="eng-header">🧮 WEERSTAND COMBINATOR <span class="info-icon" data-tooltip="Serie: R_tot = ΣR_i. Parallel: 1/R_tot = Σ(1/R_i). Bron: netwerk-reducties volgens Kirchhoff/Ohm (lineair, temperatuur constant).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Configuratie</label>
                   <select id="rcMode" class="input-field">
@@ -311,7 +311,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">⚡ PE & KORTSLUIT SCHATTING <span class="info-icon" data-tooltip="R_kabel = (2·L·ρ)/A met ρ=0.0175Ω·mm²/m (Cu). I_kort ≈ U/R_kabel, trafo impedantie genegeerd.">ℹ</span></div>
+              <div class="eng-header">⚡ PE & KORTSLUIT SCHATTING <span class="info-icon" data-tooltip="R_kabel = (2·L·ρ)/A (Cu ρ≈0.0175Ω·mm²/m). I_kort ≈ U/R_kabel; geen bron/trafo-impedantie of Zs meegenomen. Bron: eenvoudige kabelweerstandsbenadering uit IEC 60364 bijlage.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Kabellengte naar last (m)</label><input type="number" id="scL" class="input-field" value="20"></div>
                 <div class="eng-row"><label>Kabeldoorsnede (mm²)</label><input type="number" id="scA" class="input-field" value="2.5"></div>
@@ -331,7 +331,7 @@
           <div class="eng-grid">
             
             <div class="eng-card">
-              <div class="eng-header">🔧 BOUT CALCULATOR (VDI-ISH) <span class="info-icon" data-tooltip="Fp ≈ 0.9·Rp0.2·As, Ma ≈ K·d·Fp. Slip: μ·ΣFv vs. tangentiële belasting.">ℹ</span></div>
+              <div class="eng-header">🔧 BOUT CALCULATOR (VDI-ISH) <span class="info-icon" data-tooltip="Voorbelasting: Fp ≈ 0.9·Rp0.2·As. Aandraaimoment: Ma ≈ K·d·Fp (K≈0.2-0.25). Slip-check: μ·ΣFv ≥ Ftang. Utilization = F_ext/(n·Fp). Bron: VDI 2230-1 vereenvoudigd.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Maat (M)</label>
@@ -377,7 +377,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">⚙️ LAGER LEVENSDUUR (L10) <span class="info-icon" data-tooltip="L10 = (C/P)^p · 10^6 omwentelingen, p≈3 voor kogellagers. Uren = L10 / (60·n).">ℹ</span></div>
+              <div class="eng-header">⚙️ LAGER LEVENSDUUR (L10) <span class="info-icon" data-tooltip="ISO 281: L10 = (C/P)^p · 10^6 omw. p=3 kogellager, p=10/3 rollager. Bedrijfstijd = L10/(60·n). Geen levensduurcorrectie a_1/a_23 toegepast.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Dynamisch Draaggetal C (kN)</label><input type="number" id="bearC" class="input-field" placeholder="Uit datasheet"></div>
                 <div class="eng-row"><label>Equivalente Belasting P (kN)</label><input type="number" id="bearP" class="input-field" placeholder="Radial + Axial factor"></div>
@@ -389,8 +389,8 @@
               </div>
             </div>
 
-             <div class="eng-card">
-              <div class="eng-header">🗝️ SPIEVERBINDING CHECK <span class="info-icon" data-tooltip="F = 2·T/d. Druk ≈ F / ((h/2)·L). Richtwaarde staal 90-120 MPa.">ℹ</span></div>
+            <div class="eng-card">
+              <div class="eng-header">🗝️ SPIEVERBINDING CHECK <span class="info-icon" data-tooltip="Koppel → kracht: F = 2·T/d. Oppervlak: (h/2)·L. Druk ≈ F/A. Richtlijn staalspie: 90–120 MPa toelaatbaar. Bron: DIN 6885 vuistregel (geen vermoeiingscheck).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>As diameter (mm)</label><input type="number" id="keyD" class="input-field" value="30"></div>
                 <div class="eng-row"><label>Koppel (Nm)</label><input type="number" id="keyT" class="input-field" value="100"></div>
@@ -410,7 +410,7 @@
           <div class="eng-grid">
 
             <div class="eng-card">
-              <div class="eng-header">🔥 HEATSINK / JUNCTION TEMP <span class="info-icon" data-tooltip="Tj = P·(Rjc+Rha)+Ta. Rth-modus: Rha,max = (Tj,max-Ta)/P - Rjc.">ℹ</span></div>
+              <div class="eng-header">🔥 HEATSINK / JUNCTION TEMP <span class="info-icon" data-tooltip="Tj = Ta + P·(Rjc+Rha). Required-Rth: Rha,max = (Tj,max - Ta)/P - Rjc. Bron: datasheet Rθ-netwerk (serie-resistentie model), natuurlijke convectie benadering.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Modus</label>
@@ -434,7 +434,7 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">〰️ EIGENFREQUENTIE (Fn) <span class="info-icon" data-tooltip="f_n = (1/2π)·√(k·1000/m). Check verschil met excitatie → resonantie vermijden.">ℹ</span></div>
+              <div class="eng-header">〰️ EIGENFREQUENTIE (Fn) <span class="info-icon" data-tooltip="Enkelvoudige veer-massa: f_n = (1/2π)·√(k·1000/m) met k in N/mm, m in kg. Resonantie-alert bij |f_exc-f_n| <20%. Bron: basis trillingsleer (SDOF).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Massa (kg)</label><input type="number" id="vibM" class="input-field" value="10"></div>
                 <div class="eng-row"><label>Stijfheid k (N/mm)</label><input type="number" id="vibK" class="input-field" value="100"></div>
@@ -453,7 +453,7 @@
           <div class="eng-grid">
 
             <div class="eng-card">
-              <div class="eng-header">💧 FLOW SNELHEID <span class="info-icon" data-tooltip="v = Q/A. Reynolds = v·D/ν. Regime: laminar <2000, transition 2-4k, turbulent >4000.">ℹ</span></div>
+              <div class="eng-header">💧 FLOW SNELHEID <span class="info-icon" data-tooltip="Snelheid: v = Q/A met Q[L/min] → m³/s. Reynolds: Re = v·D/ν (D in m, ν kinematische viscositeit). Regime: laminar <2e3, transitie 2-4e3, turbulent >4e3. Bron: fundamenten stromingsleer.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Flow Rate (L/min)</label><input type="number" id="flQ" class="input-field" value="10"></div>
                 <div class="eng-row"><label>Buis Binnendiameter (mm)</label><input type="number" id="flD" class="input-field" value="8"></div>
@@ -473,7 +473,7 @@
             </div>
 
              <div class="eng-card">
-              <div class="eng-header">🔄 UNIT CONVERTER <span class="info-icon" data-tooltip="Snelle eenheidswissel: druk, lengte, koppel, flow. Geen precisiegarantie voor exotische units.">ℹ</span></div>
+              <div class="eng-header">🔄 UNIT CONVERTER <span class="info-icon" data-tooltip="Constante factoren: 1 bar = 14.5038 psi; 1 inch = 25.4 mm; 1 ft·lb = 1.35582 Nm; 1 US GPM = 3.785 L/min. Bron: NIST/SP 811 conversietabellen (standaard).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row">
                   <select id="convType" class="input-field">
