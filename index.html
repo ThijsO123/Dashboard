@@ -155,11 +155,24 @@
           <button class="sub-tab" data-sub="eng-fluid">💧 FLUID/VAC</button>
         </div>
 
+        <div class="eng-actions">
+          <div class="eng-actions-left">
+            <div class="pill-label">Engineering → Tasks</div>
+            <div class="eng-task-helper">Maak direct een taak vanuit een berekening.</div>
+          </div>
+          <form id="engTaskForm" class="eng-task-form">
+            <input id="engTaskTitle" class="input-field" type="text" placeholder="Korte omschrijving" required>
+            <input id="engTaskLink" class="input-field" type="url" placeholder="Optionele link (datasheet)" list="linkSuggestions">
+            <input id="engTaskProject" class="input-field" type="text" placeholder="Project" list="projectSuggestions">
+            <button type="submit" class="btn-primary">Maak taak</button>
+          </form>
+        </div>
+
         <div id="eng-elec" class="eng-sub-view active">
           <div class="eng-grid">
             
             <div class="eng-card">
-              <div class="eng-header">📉 SPANNINGSVAL (VOLTAGE DROP)</div>
+              <div class="eng-header">📉 SPANNINGSVAL (VOLTAGE DROP) <span class="info-icon" data-tooltip="U_drop = (2·L·I·ρ)/A. Aannames: koper/aluminium, DC retour 2x lengte.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Spanning (V)</label><input type="number" id="edV" class="input-field" value="24"></div>
@@ -185,21 +198,120 @@
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">🔄 AWG ↔ MM² CONVERTER</div>
+              <div class="eng-header">🪢 CABLE SIZING & DERATING <span class="info-icon" data-tooltip="Min. aderdoorsnede op basis van stroomdichtheid en spanningsval. Derating per legwijze + AC-correctie.">ℹ</span></div>
+              <div class="eng-body">
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Stroom (A)</label><input type="number" id="csI" class="input-field" value="12"></div>
+                  <div class="eng-row"><label>Kabellengte (m)</label><input type="number" id="csL" class="input-field" value="20"></div>
+                </div>
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Voedingsspanning (V)</label><input type="number" id="csV" class="input-field" value="24"></div>
+                  <div class="eng-row"><label>Max. Spanningsval (%)</label><input type="number" id="csDrop" class="input-field" value="5"></div>
+                </div>
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Legwijze</label>
+                    <select id="csLayout" class="input-field">
+                      <option value="single">Single</option>
+                      <option value="bundel">Bundel</option>
+                      <option value="goot">Goot</option>
+                      <option value="buis">Buis</option>
+                    </select>
+                  </div>
+                  <div class="eng-row"><label>Systeem</label>
+                    <select id="csSystem" class="input-field">
+                      <option value="dc">DC</option>
+                      <option value="ac">AC</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="eng-result-box">
+                  <div>Aderdoorsnede: <span id="resCableArea" class="highlight">-</span> mm²</div>
+                  <div>Spanningsval: <span id="resCableDrop" class="highlight">-</span> %</div>
+                  <div>Stroomdichtheid: <span id="resCableJ" class="highlight">-</span> A/mm²</div>
+                  <div id="resCableStatus" class="status-pill">-</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="eng-card">
+              <div class="eng-header">🔄 AWG ↔ MM² CONVERTER <span class="info-icon" data-tooltip="AWG → d = 0.127·92^{(36-AWG)/39}, A = π·(d/2)^2. Omgekeerd via ln." aria-label="AWG hulp">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row">
                   <label>AWG Waarde</label>
                   <input type="number" id="inputAWG" class="input-field" placeholder="bijv. 24" />
                 </div>
+                <div class="eng-row">
+                  <label>Doorsnede (mm²)</label>
+                  <input type="number" id="inputAreaMM2" class="input-field" placeholder="bijv. 0.205" step="0.001" />
+                </div>
                 <div class="eng-result-box">
                   <div>Diameter: <span id="resDiameter" class="highlight">-</span> mm</div>
                   <div>Area: <span id="resArea" class="highlight">-</span> mm²</div>
+                  <div>Geschatte AWG: <span id="resAwgFromArea" class="highlight">-</span></div>
+                  <div style="font-size: 10px; color: #666; margin-top:5px;">Handig voor datasheets in mm² of AWG 0000-40.</div>
                 </div>
               </div>
             </div>
 
-             <div class="eng-card">
-              <div class="eng-header">⚡ PE & KORTSLUIT SCHATTING</div>
+            <div class="eng-card">
+              <div class="eng-header">🔌 DC POWER HELPER <span class="info-icon" data-tooltip="P = U · I. PSU-belasting = P/P_Supply. Simpele check voor DC loads.">ℹ</span></div>
+              <div class="eng-body">
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Spanning (V)</label><input type="number" id="dcV" class="input-field" value="24"></div>
+                  <div class="eng-row"><label>Stroom (A)</label><input type="number" id="dcI" class="input-field" value="2.5"></div>
+                </div>
+                <div class="eng-row"><label>PSU rating (W)</label><input type="number" id="dcPsu" class="input-field" placeholder="bijv. 120"></div>
+                <div class="eng-result-box">
+                  <div>Vermogen: <span id="resDcP" class="highlight">-</span> W</div>
+                  <div>PSU-belasting: <span id="resDcPct" class="highlight">-</span></div>
+                  <div id="resDcStatus" class="status-pill">-</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="eng-card">
+              <div class="eng-header">📐 OHM'S LAW SOLVER <span class="info-icon" data-tooltip="V = I·R, I = V/R, R = V/I. Kies het onbekende veld en vul de andere twee in.">ℹ</span></div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Reken voor</label>
+                  <select id="ohmSolve" class="input-field">
+                    <option value="voltage">Spanning (V)</option>
+                    <option value="current">Stroom (A)</option>
+                    <option value="resistance">Weerstand (Ω)</option>
+                  </select>
+                </div>
+                <div class="eng-row"><label>Spanning (V)</label><input type="number" id="ohmV" class="input-field" value="24"></div>
+                <div class="eng-row"><label>Stroom (A)</label><input type="number" id="ohmI" class="input-field" value="2"></div>
+                <div class="eng-row"><label>Weerstand (Ω)</label><input type="number" id="ohmR" class="input-field" value="12"></div>
+                <div class="eng-result-box">
+                  <div>Resultaat: <span id="resOhmValue" class="highlight">-</span> <span id="resOhmUnit">V</span></div>
+                  <div style="font-size: 10px; color: #666; margin-top:5px;">Voer twee waardes in, kies de onbekende.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="eng-card">
+              <div class="eng-header">🧮 WEERSTAND COMBINATOR <span class="info-icon" data-tooltip="Serie: R_tot = ΣR. Parallel: 1/R_tot = Σ(1/R_i).">ℹ</span></div>
+              <div class="eng-body">
+                <div class="eng-row"><label>Configuratie</label>
+                  <select id="rcMode" class="input-field">
+                    <option value="series">Serie</option>
+                    <option value="parallel">Parallel</option>
+                  </select>
+                </div>
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>R1 (Ω)</label><input type="number" id="rcR1" class="input-field" value="10"></div>
+                  <div class="eng-row"><label>R2 (Ω)</label><input type="number" id="rcR2" class="input-field" value="22"></div>
+                </div>
+                <div class="eng-row"><label>Optioneel R3 (Ω)</label><input type="number" id="rcR3" class="input-field" placeholder="bijv. 47"></div>
+                <div class="eng-result-box">
+                  <div>Equivalent: <span id="resReq" class="highlight">-</span> Ω</div>
+                  <div style="font-size: 10px; color: #666; margin-top:5px;">Minstens twee waardes invullen voor een zinvol resultaat.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="eng-card">
+              <div class="eng-header">⚡ PE & KORTSLUIT SCHATTING <span class="info-icon" data-tooltip="R_kabel = (2·L·ρ)/A met ρ=0.0175Ω·mm²/m (Cu). I_kort ≈ U/R_kabel, trafo impedantie genegeerd.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Kabellengte naar last (m)</label><input type="number" id="scL" class="input-field" value="20"></div>
                 <div class="eng-row"><label>Kabeldoorsnede (mm²)</label><input type="number" id="scA" class="input-field" value="2.5"></div>
@@ -219,7 +331,7 @@
           <div class="eng-grid">
             
             <div class="eng-card">
-              <div class="eng-header">🔧 BOUT CALCULATOR (VDI-ISH)</div>
+              <div class="eng-header">🔧 BOUT CALCULATOR (VDI-ISH) <span class="info-icon" data-tooltip="Fp ≈ 0.9·Rp0.2·As, Ma ≈ K·d·Fp. Slip: μ·ΣFv vs. tangentiële belasting.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row-group">
                   <div class="eng-row"><label>Maat (M)</label>
@@ -236,6 +348,19 @@
                     </select>
                   </div>
                 </div>
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Externe belasting</label><input type="number" id="bcExt" class="input-field" value="2.5" step="0.1"></div>
+                  <div class="eng-row"><label>Belastingtype</label>
+                    <select id="bcExtType" class="input-field">
+                      <option value="axial">Axiaal</option>
+                      <option value="shear">Schuif</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Aantal bouten</label><input type="number" id="bcCount" class="input-field" value="4" min="1"></div>
+                  <div class="eng-row"><label>Slipfrictie μ</label><input type="number" id="bcMuSlip" class="input-field" value="0.2" step="0.01"></div>
+                </div>
                 <div class="eng-row">
                   <label>Wrijvingscoëfficiënt (µ)</label>
                   <input type="number" id="bcMu" class="input-field" value="0.14" step="0.01">
@@ -244,12 +369,15 @@
                 <div class="eng-result-box">
                   <div>Voorspankracht (Fp): <span id="resFp" class="highlight">0</span> kN</div>
                   <div>Aanhaalmoment (Ma): <span id="resMa" class="highlight">0</span> Nm</div>
+                  <div>Benutting externe belasting: <span id="resBoltUtil" class="highlight">-</span></div>
+                  <div>Slip-check: <span id="resBoltSlip" class="highlight">-</span></div>
+                  <div id="resBoltStatus" class="status-pill">-</div>
                 </div>
               </div>
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">⚙️ LAGER LEVENSDUUR (L10)</div>
+              <div class="eng-header">⚙️ LAGER LEVENSDUUR (L10) <span class="info-icon" data-tooltip="L10 = (C/P)^p · 10^6 omwentelingen, p≈3 voor kogellagers. Uren = L10 / (60·n).">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Dynamisch Draaggetal C (kN)</label><input type="number" id="bearC" class="input-field" placeholder="Uit datasheet"></div>
                 <div class="eng-row"><label>Equivalente Belasting P (kN)</label><input type="number" id="bearP" class="input-field" placeholder="Radial + Axial factor"></div>
@@ -262,7 +390,7 @@
             </div>
 
              <div class="eng-card">
-              <div class="eng-header">🗝️ SPIEVERBINDING CHECK</div>
+              <div class="eng-header">🗝️ SPIEVERBINDING CHECK <span class="info-icon" data-tooltip="F = 2·T/d. Druk ≈ F / ((h/2)·L). Richtwaarde staal 90-120 MPa.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>As diameter (mm)</label><input type="number" id="keyD" class="input-field" value="30"></div>
                 <div class="eng-row"><label>Koppel (Nm)</label><input type="number" id="keyT" class="input-field" value="100"></div>
@@ -278,55 +406,74 @@
           </div>
         </div>
 
-        <div id="eng-therm" class="eng-sub-view">
+                <div id="eng-therm" class="eng-sub-view">
           <div class="eng-grid">
-            
+
             <div class="eng-card">
-              <div class="eng-header">🔥 HEATSINK / JUNCTION TEMP</div>
+              <div class="eng-header">🔥 HEATSINK / JUNCTION TEMP <span class="info-icon" data-tooltip="Tj = P·(Rjc+Rha)+Ta. Rth-modus: Rha,max = (Tj,max-Ta)/P - Rjc.">ℹ</span></div>
               <div class="eng-body">
+                <div class="eng-row-group">
+                  <div class="eng-row"><label>Modus</label>
+                    <select id="thMode" class="input-field">
+                      <option value="tj">Tj-berekening</option>
+                      <option value="rha">Required Rth</option>
+                    </select>
+                  </div>
+                  <div class="eng-row"><label>Max Tj (°C)</label><input type="number" id="thTjMax" class="input-field" value="125"></div>
+                </div>
                 <div class="eng-row"><label>Vermogen Dissipatie (W)</label><input type="number" id="thP" class="input-field" value="10"></div>
                 <div class="eng-row"><label>R_th Junction-Case (°C/W)</label><input type="number" id="thRjc" class="input-field" value="1.5"></div>
                 <div class="eng-row"><label>R_th Heatsink-Amb (°C/W)</label><input type="number" id="thRha" class="input-field" value="4.0"></div>
                 <div class="eng-row"><label>Omgevingstemp (°C)</label><input type="number" id="thTa" class="input-field" value="25"></div>
                 <div class="eng-result-box">
                   <div>Junction Temp (Tj): <span id="resTj" class="highlight">-</span> °C</div>
-                  <div>Max aanbevolen: < 125 °C</div>
+                  <div>R_ha vereist: <span id="resRhaMax" class="highlight">-</span> °C/W</div>
+                  <div id="resThermStatus" class="status-pill">-</div>
                 </div>
               </div>
             </div>
 
             <div class="eng-card">
-              <div class="eng-header">〰️ EIGENFREQUENTIE (Fn)</div>
+              <div class="eng-header">〰️ EIGENFREQUENTIE (Fn) <span class="info-icon" data-tooltip="f_n = (1/2π)·√(k·1000/m). Check verschil met excitatie → resonantie vermijden.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Massa (kg)</label><input type="number" id="vibM" class="input-field" value="10"></div>
                 <div class="eng-row"><label>Stijfheid k (N/mm)</label><input type="number" id="vibK" class="input-field" value="100"></div>
+                <div class="eng-row"><label>Excitatie (Hz)</label><input type="number" id="vibExc" class="input-field" placeholder="bijv. 50"></div>
                 <div class="eng-result-box">
                   <div>Frequentie: <span id="resFn" class="highlight">-</span> Hz</div>
-                  <small style="color:#666">Check of dit in de buurt van 50Hz zit!</small>
+                  <div>Δ t.o.v. excitatie: <span id="resFnDelta" class="highlight">-</span></div>
+                  <div id="resVibStatus" class="status-pill">-</div>
                 </div>
               </div>
             </div>
 
           </div>
         </div>
-
         <div id="eng-fluid" class="eng-sub-view">
           <div class="eng-grid">
-            
+
             <div class="eng-card">
-              <div class="eng-header">💧 FLOW SNELHEID</div>
+              <div class="eng-header">💧 FLOW SNELHEID <span class="info-icon" data-tooltip="v = Q/A. Reynolds = v·D/ν. Regime: laminar <2000, transition 2-4k, turbulent >4000.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row"><label>Flow Rate (L/min)</label><input type="number" id="flQ" class="input-field" value="10"></div>
                 <div class="eng-row"><label>Buis Binnendiameter (mm)</label><input type="number" id="flD" class="input-field" value="8"></div>
+                <div class="eng-row"><label>Medium</label>
+                  <select id="flMedium" class="input-field">
+                    <option value="water">Water</option>
+                    <option value="lucht">Lucht</option>
+                    <option value="olie">Olie</option>
+                  </select>
+                </div>
                 <div class="eng-result-box">
                   <div>Snelheid: <span id="resVelo" class="highlight">-</span> m/s</div>
-                  <div>Advies: Water < 2-3 m/s, Olie < 1 m/s</div>
+                  <div>Reynolds: <span id="resRe" class="highlight">-</span> (<span id="resReLabel">-</span>)</div>
+                  <div id="resFlowStatus" class="status-pill">-</div>
                 </div>
               </div>
             </div>
 
              <div class="eng-card">
-              <div class="eng-header">🔄 UNIT CONVERTER</div>
+              <div class="eng-header">🔄 UNIT CONVERTER <span class="info-icon" data-tooltip="Snelle eenheidswissel: druk, lengte, koppel, flow. Geen precisiegarantie voor exotische units.">ℹ</span></div>
               <div class="eng-body">
                 <div class="eng-row">
                   <select id="convType" class="input-field">
