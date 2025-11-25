@@ -757,6 +757,10 @@ const ganttTrack = document.getElementById("ganttTrack");
 const ganttEmpty = document.getElementById("ganttEmpty");
 const ganttRangeLabel = document.getElementById("ganttRangeLabel");
 const ganttLabel = document.getElementById("ganttLabel");
+const engTaskForm = document.getElementById('engTaskForm');
+const engTaskTitle = document.getElementById('engTaskTitle');
+const engTaskLink = document.getElementById('engTaskLink');
+const engTaskProject = document.getElementById('engTaskProject');
 const engTaskDefaults = () => {
   if (engTaskProject && currentProjectFilter && !engTaskProject.value) {
     engTaskProject.value = currentProjectFilter;
@@ -1980,10 +1984,6 @@ const inputAreaMM2 = document.getElementById('inputAreaMM2');
 const resDiameter = document.getElementById('resDiameter');
 const resArea = document.getElementById('resArea');
 const resAwgFromArea = document.getElementById('resAwgFromArea');
-const engTaskForm = document.getElementById('engTaskForm');
-const engTaskTitle = document.getElementById('engTaskTitle');
-const engTaskLink = document.getElementById('engTaskLink');
-const engTaskProject = document.getElementById('engTaskProject');
 
 function setStatusPill(el, tone, text) {
   if (!el) return;
@@ -2062,51 +2062,7 @@ if (inputAreaMM2) {
   });
 }
 
-// 2. Bolt Calculator
-const inputBoltSize = document.getElementById('inputBoltSize');
-const inputBoltClass = document.getElementById('inputBoltClass');
-const resPreload = document.getElementById('resPreload');
-const resTorque = document.getElementById('resTorque');
-
-function calculateBolt() {
-  if(!inputBoltSize || !inputBoltClass) return;
-
-  const d = parseInt(inputBoltSize.value); // Diameter in mm
-  const propClass = parseFloat(inputBoltClass.value); // e.g. 8.8
-  
-  // Schatting Stress Area (As) - simpele benadering voor standaard grof draad
-  // As ≈ 0.7854 * (d - 0.9382 * pitch)^2
-  // We gebruiken hier een versimpelde lookup voor standaard spoed
-  const pitchMap = {3:0.5, 4:0.7, 5:0.8, 6:1.0, 8:1.25, 10:1.5, 12:1.75, 16:2.0, 20:2.5};
-  const p = pitchMap[d] || 1.0;
-  
-  const As = 0.7854 * Math.pow(d - 0.9382 * p, 2);
-  
-  // Yield Strength (Rp0.2) berekenen uit property class (bijv 8.8 -> 800 * 0.8 = 640)
-  const ultimateStrength = Math.floor(propClass) * 100; // Eerste cijfer * 100
-  const yieldRatio = (propClass - Math.floor(propClass)) * 10; // Cijfer achter punt
-  const yieldStrength = ultimateStrength * (yieldRatio / 10);
-  
-  // Preload Force (Fp) ≈ 0.9 * Rp0.2 * As (vaak 90% van yield bij torque method)
-  // Let op: dit is een schatting voor algemene constructies
-  const Fp_Newton = 0.9 * yieldStrength * As;
-  const Fp_kN = Fp_Newton / 1000;
-  
-  // Torque (Ma) ≈ 0.14 * d * Fp (bij wrijving 0.14) (Kellermann & Klein formule simplificatie)
-  // Ma = Fp * (0.16 * P + 0.58 * d2 * mu_G + 0.5 * Dkm * mu_K) -> Versimpeld: 0.2 * Fp * d (droog) of 0.14 (gesmeerd)
-  const K = 0.14; // Aanname: licht geolied / standaard
-  const Torque_Nm = (K * d * Fp_Newton) / 1000;
-
-  resPreload.textContent = Fp_kN.toFixed(1);
-  resTorque.textContent = Torque_Nm.toFixed(1);
-}
-
-if(inputBoltSize && inputBoltClass) {
-  inputBoltSize.addEventListener('change', calculateBolt);
-  inputBoltClass.addEventListener('change', calculateBolt);
-  // Initial run
-  calculateBolt(); 
-}// --- ENGINEERING SUB-NAVIGATION ---------------------------------------
+  // --- ENGINEERING SUB-NAVIGATION ---------------------------------------
 const subTabs = document.querySelectorAll('.sub-tab');
 const subViews = document.querySelectorAll('.eng-sub-view');
 
