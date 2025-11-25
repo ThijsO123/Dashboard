@@ -189,6 +189,11 @@ button:focus-visible {
   background: #0f151d;
 }
 
+.input-field.input-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* FIX: Donkere kalender */
 input[type="date"] {
   color-scheme: dark;
@@ -1357,12 +1362,50 @@ footer .count { color: var(--accent); }
   gap: 24px;
 }
 
+.eng-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--radius);
+  background: #0b1016;
+}
+
+.eng-actions-left {
+  min-width: 180px;
+}
+
+.eng-task-helper {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.eng-task-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  flex: 1;
+}
+
+.pill-label {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
 .eng-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
   padding: 20px;
-}
+  }
 
 .eng-card.full-width {
   grid-column: 1 / -1;
@@ -1376,6 +1419,50 @@ footer .count { color: var(--accent); }
   margin-bottom: 16px;
   border-bottom: 1px solid var(--border-soft);
   padding-bottom: 8px;
+}
+
+.info-icon {
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-soft);
+  border-radius: 50%;
+  padding: 3px 6px;
+  margin-left: 6px;
+  cursor: help;
+  position: relative;
+  transition: border var(--transition-fast), color var(--transition-fast);
+}
+
+.info-icon:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.info-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  top: 120%;
+  min-width: 220px;
+  max-width: 320px;
+  background: #0a0f15;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  color: var(--text-main);
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: translateY(-2px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 10;
+}
+
+.info-icon:hover::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .eng-row {
@@ -1398,6 +1485,20 @@ footer .count { color: var(--accent); }
   font-family: monospace;
   color: var(--text-muted);
 }
+
+.status-pill {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #0d1218;
+  border: 1px solid var(--border-soft);
+  font-size: 12px;
+}
+
+.status-good { color: #4be080; border-color: rgba(75,224,128,0.5); background: rgba(75,224,128,0.08); }
+.status-warn { color: #f7b955; border-color: rgba(247,185,85,0.5); background: rgba(247,185,85,0.1); }
+.status-bad  { color: var(--danger); border-color: rgba(255,79,107,0.5); background: rgba(255,79,107,0.1); }
 
 .highlight {
   color: var(--accent);
